@@ -36,7 +36,8 @@ display:block;
 🪵 Madeira: <span id="wood">0</span><br>
 🚔 Suspeita: <span id="sus">0</span>%<br>
 🌤️ Clima: <span id="weather">Sol</span><br>
-📜 Missão: Corte 5 árvores
+📜 Missão: <span id="missao">Corte 5 árvores (0/5)</span><br>
+⌨️ WASD mover · Espaço cortar · E vender
 </div>
 
 <canvas id="game"></canvas>
@@ -73,6 +74,11 @@ let dinheiro=0;
 let madeira=0;
 let suspeita=0;
 let clima="Sol";
+
+// Ajustes do jogo (os alunos podem mudar estes números)
+const SUSPEITA_POR_ARVORE=5;   // quanto a suspeita sobe a cada árvore cortada
+const META_DINHEIRO=1000;      // dinheiro para vencer
+const MUNDO=8000;              // tamanho do mapa
 
 const trees=[];
 
@@ -129,7 +135,7 @@ tree.cortada=true;
 
 madeira++;
 
-suspeita+=2;
+suspeita+=SUSPEITA_POR_ARVORE;
 
 document.getElementById("wood")
 .innerText=madeira;
@@ -202,4 +208,274 @@ ctx.arc(canvas.width-120,80,35,0,Math.PI*2);
 
 }else{
 
-ctx.
+ctx.fillStyle="#e0e0e0";
+ctx.arc(canvas.width-120,80,30,0,Math.PI*2);
+
+}
+
+ctx.fill();
+
+}
+
+/* ---------- Parte final do jogo ---------- */
+
+let fim=false;
+let motivoFim="";
+let missaoCumprida=false;
+let quadro=0;
+
+function cortadas(){
+let n=0;
+for(const t of trees){
+if(t.cortada) n++;
+}
+return n;
+}
+
+function drawTrees(camX,camY){
+
+const horizonte=canvas.height*0.3;
+
+for(const tree of trees){
+
+const sx=tree.x-camX;
+const sy=tree.y-camY;
+
+if(sx<-60||sx>canvas.width+60) continue;
+if(sy<horizonte||sy>canvas.height+80) continue;
+
+if(tree.cortada){
+
+// só sobrou o toco
+ctx.fillStyle="#6d4c41";
+ctx.fillRect(sx-7,sy-4,14,8);
+continue;
+
+}
+
+// tronco
+ctx.fillStyle="#795548";
+ctx.fillRect(sx-7,sy-14,14,38);
+
+// copa
+ctx.fillStyle="#1b5e20";
+ctx.beginPath();
+ctx.arc(sx,sy-30,28,0,Math.PI*2);
+ctx.fill();
+
+// barra de vida quando a árvore já foi machucada
+if(tree.vida<100){
+
+ctx.fillStyle="#b71c1c";
+ctx.fillRect(sx-20,sy-70,40,6);
+
+ctx.fillStyle="#76ff03";
+ctx.fillRect(sx-20,sy-70,40*(tree.vida/100),6);
+
+}
+
+}
+
+}
+
+function drawPlayer(){
+
+const px=canvas.width/2;
+const py=canvas.height/2;
+
+// cabeça
+ctx.fillStyle="#ffcc80";
+ctx.beginPath();
+ctx.arc(px,py-18,9,0,Math.PI*2);
+ctx.fill();
+
+// corpo
+ctx.fillStyle="#d32f2f";
+ctx.fillRect(px-9,py-9,18,26);
+
+// machado aparece enquanto corta
+if(keys[" "]){
+
+ctx.font="26px Arial";
+ctx.fillText("🪓",px+10,py+8);
+
+}
+
+}
+
+function drawClima(){
+
+if(clima==="Chuva"){
+
+ctx.strokeStyle="rgba(200,220,255,.6)";
+ctx.lineWidth=1;
+ctx.beginPath();
+
+for(let i=0;i<120;i++){
+
+const x=(i*97+quadro*6)%canvas.width;
+const y=(i*53+quadro*14)%canvas.height;
+
+ctx.moveTo(x,y);
+ctx.lineTo(x-4,y+14);
+
+}
+
+ctx.stroke();
+
+}
+
+if(clima==="Neblina"){
+
+ctx.fillStyle="rgba(220,220,220,.35)";
+ctx.fillRect(0,0,canvas.width,canvas.height);
+
+}
+
+}
+
+function drawSirene(){
+
+ctx.fillStyle=(Math.floor(quadro/15)%2)
+?"rgba(255,0,0,.25)"
+:"rgba(0,80,255,.25)";
+
+ctx.fillRect(0,0,canvas.width,canvas.height);
+
+ctx.fillStyle="white";
+ctx.font="bold 28px Arial";
+ctx.textAlign="center";
+ctx.fillText("🚨 A polícia está chegando!",canvas.width/2,50);
+ctx.textAlign="left";
+
+}
+
+function atualizarSuspeita(){
+
+// a suspeita cai devagar quando você para de cortar (na neblina cai mais rápido)
+if(!keys[" "]&&suspeita>0){
+
+const queda=(clima==="Neblina")?0.008:0.004;
+suspeita=Math.max(0,suspeita-queda);
+
+}
+
+suspeita=Math.min(100,suspeita);
+
+document.getElementById("sus")
+.innerText=Math.floor(suspeita);
+
+if(suspeita>=100) terminar("preso");
+
+}
+
+function atualizarMissao(){
+
+const missao=document.getElementById("missao");
+const n=cortadas();
+
+if(!missaoCumprida){
+
+missao.innerText="Corte 5 árvores ("+Math.min(n,5)+"/5)";
+
+if(n>=5){
+
+missaoCumprida=true;
+
+missao.innerText="Cumprida! Agora junte "+META_DINHEIRO+" 💰 sem a suspeita chegar a 100%";
+
+}
+
+}
+
+}
+
+function terminar(motivo){
+
+fim=true;
+motivoFim=motivo;
+
+}
+
+function drawFim(){
+
+const cx=canvas.width/2;
+const cy=canvas.height/2;
+
+ctx.fillStyle="rgba(0,0,0,.85)";
+ctx.fillRect(0,0,canvas.width,canvas.height);
+
+ctx.textAlign="center";
+
+ctx.fillStyle=(motivoFim==="preso")?"#ff5252":"#ffd54f";
+ctx.font="bold 40px Arial";
+ctx.fillText(
+(motivoFim==="preso")?"🚔 Você foi pego!":"💰 Você escapou... desta vez",
+cx,
+cy-120
+);
+
+ctx.fillStyle="white";
+ctx.font="22px Arial";
+
+const linhas=[
+"Você derrubou "+cortadas()+" árvores e juntou "+dinheiro+" de dinheiro.",
+"",
+"Cortar árvores ilegalmente é crime ambiental:",
+"destrói a casa dos animais, piora o clima e seca os rios.",
+"A floresta precisa de guardiões, e não de lenhadores ilegais!",
+"",
+"Pressione R para jogar de novo"
+];
+
+linhas.forEach((texto,i)=>{
+ctx.fillText(texto,cx,cy-50+i*32);
+});
+
+ctx.textAlign="left";
+
+}
+
+addEventListener("keydown",e=>{
+if(fim&&e.key.toLowerCase()==="r") location.reload();
+});
+
+function loop(){
+
+quadro++;
+
+if(!fim){
+
+update();
+
+player.x=Math.max(0,Math.min(MUNDO,player.x));
+player.y=Math.max(0,Math.min(MUNDO,player.y));
+
+atualizarSuspeita();
+atualizarMissao();
+
+if(missaoCumprida&&dinheiro>=META_DINHEIRO) terminar("escapou");
+
+}
+
+const camX=player.x-canvas.width/2;
+const camY=player.y-canvas.height/2;
+
+drawSky();
+drawTrees(camX,camY);
+drawPlayer();
+drawClima();
+
+if(suspeita>=70&&!fim) drawSirene();
+if(fim) drawFim();
+
+requestAnimationFrame(loop);
+
+}
+
+loop();
+
+</script>
+
+</body>
+</html>
