@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lenhador Ilegal</title>
+
+<style>
+body{
+margin:0;
+overflow:hidden;
+font-family:Arial;
+}
+
+#hud{
+position:absolute;
+top:10px;
+left:10px;
+background:rgba(0,0,0,.8);
+color:white;
+padding:10px;
+border-radius:10px;
+z-index:10;
+}
+
+canvas{
+display:block;
+}
+</style>
+</head>
+
+<body>
+
+<div id="hud">
+💰 Dinheiro: <span id="money">0</span><br>
+🪵 Madeira: <span id="wood">0</span><br>
+🚔 Suspeita: <span id="sus">0</span>%<br>
+🌤️ Clima: <span id="weather">Sol</span><br>
+📜 Missão: Corte 5 árvores
+</div>
+
+<canvas id="game"></canvas>
+
+<script>
+
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+
+function resize(){
+canvas.width=innerWidth;
+canvas.height=innerHeight;
+}
+resize();
+addEventListener("resize",resize);
+
+const keys={};
+
+addEventListener("keydown",e=>{
+keys[e.key.toLowerCase()]=true;
+});
+
+addEventListener("keyup",e=>{
+keys[e.key.toLowerCase()]=false;
+});
+
+const player={
+x:4000,
+y:4000,
+speed:4
+};
+
+let dinheiro=0;
+let madeira=0;
+let suspeita=0;
+let clima="Sol";
+
+const trees=[];
+
+for(let i=0;i<400;i++){
+
+trees.push({
+x:Math.random()*8000,
+y:Math.random()*8000,
+vida:100,
+cortada:false
+});
+
+}
+
+let tempo=0;
+
+setInterval(()=>{
+
+const lista=["Sol","Chuva","Neblina"];
+
+clima=
+lista[Math.floor(Math.random()*lista.length)];
+
+document.getElementById("weather")
+.innerText=clima;
+
+},15000);
+
+function update(){
+
+if(keys["w"]) player.y-=player.speed;
+if(keys["s"]) player.y+=player.speed;
+if(keys["a"]) player.x-=player.speed;
+if(keys["d"]) player.x+=player.speed;
+
+if(keys[" "]){
+
+for(const tree of trees){
+
+if(tree.cortada) continue;
+
+const dist=Math.hypot(
+player.x-tree.x,
+player.y-tree.y
+);
+
+if(dist<60){
+
+tree.vida-=3;
+
+if(tree.vida<=0){
+
+tree.cortada=true;
+
+madeira++;
+
+suspeita+=2;
+
+document.getElementById("wood")
+.innerText=madeira;
+
+document.getElementById("sus")
+.innerText=suspeita;
+
+}
+
+break;
+
+}
+
+}
+
+}
+
+if(keys["e"]){
+
+dinheiro += madeira*50;
+
+madeira=0;
+
+document.getElementById("money")
+.innerText=dinheiro;
+
+document.getElementById("wood")
+.innerText=0;
+
+}
+
+tempo+=0.002;
+
+}
+
+function drawSky(){
+
+const brilho=
+(Math.sin(tempo)+1)/2;
+
+const r=Math.floor(20+120*brilho);
+const g=Math.floor(70+120*brilho);
+const b=Math.floor(150+80*brilho);
+
+ctx.fillStyle=
+`rgb(${r},${g},${b})`;
+
+ctx.fillRect(
+0,
+0,
+canvas.width,
+canvas.height
+);
+
+ctx.fillStyle="#4caf50";
+
+ctx.fillRect(
+0,
+canvas.height*0.3,
+canvas.width,
+canvas.height
+);
+
+ctx.beginPath();
+
+if(brilho>0.5){
+
+ctx.fillStyle="yellow";
+ctx.arc(canvas.width-120,80,35,0,Math.PI*2);
+
+}else{
+
+ctx.
