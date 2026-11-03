@@ -8,7 +8,7 @@ Abra o link do jogo (GitHub Pages):
 
 https://szadil763.github.io/guardi-es-da-floresta/
 
-Ou baixe o projeto e abra o arquivo `index.html` no navegador. Não precisa instalar nada.
+Ou baixe o projeto e abra o arquivo `index.html` no navegador. Não precisa instalar nada, mas precisa de internet: o jogo usa a biblioteca [three.js](https://threejs.org/) para desenhar a floresta em 3D.
 
 Controles (teclado):
 
@@ -26,13 +26,13 @@ O jogo precisa de teclado, então não funciona bem em celular.
 1. Missão 1: corte 5 árvores.
 2. Missão 2: junte 1000 de dinheiro sem a **suspeita** chegar a 100%.
 
-Cada árvore cortada aumenta a suspeita. Ela diminui devagar quando você para de cortar (mais rápido na neblina). Com 70% ou mais a polícia se aproxima, e com 100% você é preso. No fim, o jogo mostra o que o desmatamento ilegal causa.
+A floresta tem morros, um rio, flores, pedras, montanhas, nuvens, dia e noite, chuva e neblina. Cada árvore cortada cai no chão e deixa só o toco, e aumenta a suspeita. Ela diminui devagar quando você para de cortar (mais rápido na neblina). Com 70% ou mais a polícia se aproxima, e com 100% você é preso. No fim, o jogo mostra o que o desmatamento ilegal causa.
 
 ## Estrutura
 
 ```
 guardi-es-da-floresta/
-├── index.html    # o jogo inteiro (visual + lógica)
+├── index.html    # o jogo inteiro (visual 3D com three.js + lógica)
 ├── README.md
 └── CLAUDE.md
 ```
@@ -44,7 +44,9 @@ No começo do código do `index.html`, procure o bloco "Ajustes do jogo":
 ```js
 const SUSPEITA_POR_ARVORE=5;   // quanto a suspeita sobe a cada árvore cortada
 const META_DINHEIRO=1000;      // dinheiro para vencer
-const MUNDO=8000;              // tamanho do mapa
+const MUNDO=200;               // tamanho do mapa (em metros)
+const NUM_ARVORES=400;         // quantas árvores existem na floresta
+const VELOCIDADE=0.18;         // velocidade do lenhador
 ```
 
 ## Publicar no GitHub Pages
