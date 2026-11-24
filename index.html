@@ -6,41 +6,232 @@
 <title>Lenhador Ilegal</title>
 
 <style>
+:root{
+--painel:rgba(14,22,18,.74);
+--borda:rgba(255,255,255,.14);
+--texto:#f1f5ee;
+--destaque:#ffd54f;
+--verde:#a5d6a7;
+}
+
+*{box-sizing:border-box}
+
 body{
 margin:0;
 overflow:hidden;
-font-family:Arial;
+font-family:"Trebuchet MS",Arial,sans-serif;
 background:#000;
+color:var(--texto);
+user-select:none;
 }
 
-#hud{
+canvas{display:block}
+
+/* caixas da interface */
+.painel{
+background:var(--painel);
+border:1px solid var(--borda);
+border-radius:14px;
+backdrop-filter:blur(6px);
+box-shadow:0 6px 22px rgba(0,0,0,.35);
+}
+
+#hud{display:none}
+
+/* canto esquerdo: dinheiro, madeira, machado */
+#status{
 position:absolute;
-top:10px;
-left:10px;
-background:rgba(0,0,0,.7);
-color:white;
-padding:10px 14px;
-border-radius:10px;
+top:14px;
+left:14px;
+padding:12px 16px;
+min-width:230px;
 z-index:10;
-line-height:1.5;
 }
 
-/* barra de vida que aparece em cima da árvore sendo cortada */
+.linha{
+display:flex;
+justify-content:space-between;
+gap:18px;
+font-size:15px;
+margin:4px 0;
+}
+
+.linha b{color:var(--destaque)}
+
+/* barra de suspeita no topo */
+#suspeitaBox{
+position:absolute;
+top:14px;
+left:50%;
+transform:translateX(-50%);
+width:min(360px,50vw);
+padding:8px 14px 10px;
+z-index:10;
+text-align:center;
+font-size:14px;
+}
+
+.barra{
+height:12px;
+background:rgba(255,255,255,.12);
+border-radius:8px;
+overflow:hidden;
+margin-top:6px;
+}
+
+.barra>div{
+height:100%;
+width:0;
+border-radius:8px;
+transition:width .25s;
+}
+
+#barraMissao{background:linear-gradient(90deg,#66bb6a,#c0ca33)}
+
+/* canto direito: minimapa e missão */
+#direita{
+position:absolute;
+top:14px;
+right:14px;
+display:flex;
+flex-direction:column;
+gap:10px;
+align-items:flex-end;
+z-index:10;
+}
+
+#mapaBox{padding:8px}
+
+#minimapa{
+display:block;
+width:180px;
+height:180px;
+border-radius:10px;
+}
+
+#relogio{
+font-size:13px;
+text-align:center;
+margin-top:6px;
+}
+
+#missaoBox{
+width:260px;
+padding:12px 14px;
+}
+
+#missaoBox h3{
+margin:0 0 4px;
+font-size:12px;
+color:var(--verde);
+text-transform:uppercase;
+letter-spacing:1px;
+}
+
+#missaoTitulo{font-weight:bold;font-size:17px}
+#missaoTexto{font-size:14px;opacity:.92;margin:4px 0}
+#missaoInfo{font-size:12px;opacity:.75;margin-top:6px}
+
+/* "aperte E para..." */
+#acao{
+position:absolute;
+bottom:110px;
+left:50%;
+transform:translateX(-50%);
+padding:9px 18px;
+font-size:16px;
+display:none;
+z-index:10;
+white-space:nowrap;
+}
+
+.tecla{
+display:inline-block;
+background:#fff;
+color:#222;
+border-radius:6px;
+padding:1px 8px;
+font-weight:bold;
+margin-right:6px;
+box-shadow:0 2px 0 #999;
+}
+
+/* mensagens rápidas */
+#avisos{
+position:absolute;
+left:50%;
+top:78px;
+transform:translateX(-50%);
+display:flex;
+flex-direction:column;
+gap:6px;
+align-items:center;
+z-index:12;
+pointer-events:none;
+}
+
+.aviso{
+padding:8px 16px;
+font-size:15px;
+animation:entra .3s ease-out;
+max-width:80vw;
+text-align:center;
+}
+
+@keyframes entra{
+from{opacity:0;transform:translateY(-10px)}
+to{opacity:1;transform:none}
+}
+
+/* conversa com os personagens */
+#dialogo{
+position:absolute;
+bottom:24px;
+left:50%;
+transform:translateX(-50%);
+width:min(660px,92vw);
+padding:16px 20px;
+display:none;
+z-index:15;
+}
+
+#dialogoNome{
+color:var(--destaque);
+font-weight:bold;
+font-size:18px;
+margin-bottom:6px;
+}
+
+#dialogoTexto{font-size:16px;line-height:1.45}
+#dialogoOpcoes div{margin-top:7px;font-size:15px}
+#dialogoDica{font-size:12px;opacity:.65;margin-top:12px}
+
+#controles{
+position:absolute;
+bottom:14px;
+left:14px;
+font-size:12px;
+padding:8px 12px;
+z-index:10;
+line-height:1.7;
+opacity:.85;
+}
+
+/* barra de vida em cima da árvore */
 #vidaArvore{
 position:absolute;
-width:50px;
-height:7px;
+width:56px;
+height:8px;
 background:#b71c1c;
 border:1px solid #000;
+border-radius:4px;
+overflow:hidden;
 display:none;
 z-index:5;
 transform:translate(-50%,-50%);
 }
 
-#vidaArvore div{
-height:100%;
-background:#76ff03;
-}
+#vidaArvore div{height:100%;background:#76ff03}
 
 /* alerta de polícia */
 #sirene{
@@ -50,34 +241,58 @@ display:none;
 z-index:6;
 pointer-events:none;
 color:white;
-font:bold 28px Arial;
+font:bold 28px "Trebuchet MS",Arial;
 text-align:center;
-padding-top:30px;
-text-shadow:0 0 6px #000;
+padding-top:120px;
+text-shadow:0 0 8px #000;
 }
 
-/* tela final */
-#fim{
+/* tela inicial e tela final */
+#inicio,#fim{
 position:absolute;
 inset:0;
-display:none;
-z-index:20;
-background:rgba(0,0,0,.85);
-color:white;
-text-align:center;
-font-size:22px;
+z-index:30;
+display:flex;
 flex-direction:column;
 justify-content:center;
 align-items:center;
+text-align:center;
+padding:20px;
+}
+
+#inicio{
+background:radial-gradient(circle,rgba(0,0,0,.25),rgba(0,0,0,.8));
+cursor:pointer;
+}
+
+#inicio h1{
+font-size:clamp(36px,7vw,64px);
+margin:0;
+text-shadow:0 4px 18px #000;
+}
+
+#inicio p{font-size:18px;max-width:640px;line-height:1.5;text-shadow:0 2px 6px #000}
+
+#inicio .comecar{
+margin-top:18px;
+font-size:22px;
+color:var(--destaque);
+animation:pisca 1.2s infinite;
+}
+
+@keyframes pisca{50%{opacity:.4}}
+
+#fim{
+display:none;
+z-index:40;
+background:rgba(0,0,0,.86);
+font-size:20px;
 line-height:1.6;
 }
 
-#fim h1{
-font-size:40px;
-margin:0 0 20px;
-}
+#fim h1{font-size:40px;margin:0 0 18px}
 
-#aviso{
+#aviso3d{
 position:absolute;
 inset:0;
 display:flex;
@@ -96,59 +311,148 @@ text-align:center;
 <body>
 
 <div id="hud">
-💰 Dinheiro: <span id="money">0</span><br>
-🪵 Madeira: <span id="wood">0</span><br>
-🚔 Suspeita: <span id="sus">0</span>%<br>
-🌤️ Clima: <span id="weather">Sol</span><br>
-📜 Missão: <span id="missao">Corte 5 árvores (0/5)</span><br>
-⌨️ WASD mover · Espaço cortar · E vender
+
+<div id="status" class="painel">
+<div class="linha"><span>💰 Dinheiro</span><b id="dinheiro">0</b></div>
+<div class="linha"><span>🪵 Madeira</span><b id="madeira">0/10</b></div>
+<div class="linha"><span>🪓 Ferramenta</span><b id="machado">-</b></div>
+<div class="linha"><span>🌲 Derrubadas</span><b id="derrubadas">0</b></div>
 </div>
 
+<div id="suspeitaBox" class="painel">
+🚔 Suspeita da polícia: <b id="suspeitaNum">0%</b>
+<div class="barra"><div id="barraSuspeita"></div></div>
+</div>
+
+<div id="direita">
+<div id="mapaBox" class="painel">
+<canvas id="minimapa" width="180" height="180"></canvas>
+<div id="relogio">-</div>
+</div>
+<div id="missaoBox" class="painel">
+<h3>📜 Missão <span id="missaoNum"></span></h3>
+<div id="missaoTitulo"></div>
+<div id="missaoTexto"></div>
+<div class="barra"><div id="barraMissao"></div></div>
+<div id="missaoInfo"></div>
+</div>
+</div>
+
+<div id="controles" class="painel">
+<span class="tecla">WASD</span>mover · <span class="tecla">Espaço</span>cortar<br>
+<span class="tecla">E</span>falar / vender · <span class="tecla">F</span>carro · <span class="tecla">M</span>música · <span class="tecla">G</span>gráficos
+</div>
+
+</div>
+
+<div id="acao" class="painel"></div>
+<div id="avisos"></div>
+<div id="dialogo" class="painel">
+<div id="dialogoNome"></div>
+<div id="dialogoTexto"></div>
+<div id="dialogoOpcoes"></div>
+<div id="dialogoDica">Aperte E ou Esc para fechar</div>
+</div>
 <div id="vidaArvore"><div></div></div>
 <div id="sirene">🚨 A polícia está chegando!</div>
+
+<div id="inicio">
+<h1>🌲 Lenhador Ilegal</h1>
+<p>Guardiões da Floresta</p>
+<p>Você é um lenhador que trabalha para o Seu Zé, um madeireiro que não liga para a lei.
+Cumpra as missões, ganhe dinheiro, compre ferramentas e roupas, ganhe uma caminhonete
+e explore a floresta... mas cuidado: os fiscais e a polícia estão de olho!</p>
+<p>
+<span class="tecla">WASD</span>mover · <span class="tecla">Espaço</span>cortar ·
+<span class="tecla">E</span>falar/vender · <span class="tecla">F</span>carro · <span class="tecla">M</span>música
+</p>
+<div class="comecar">Aperte ENTER (ou clique) para começar 🎵</div>
+</div>
+
 <div id="fim"></div>
-<div id="aviso">Carregando a floresta...</div>
+<div id="aviso3d">Carregando a floresta...</div>
 
 <script>
 
 if(typeof THREE==="undefined"){
-document.getElementById("aviso").innerText=
+document.getElementById("aviso3d").innerText=
 "Não foi possível carregar o three.js. Verifique a conexão com a internet.";
 throw new Error("three.js não carregou");
 }
-document.getElementById("aviso").remove();
+document.getElementById("aviso3d").remove();
 
-/* ---------- Ajustes do jogo (os alunos podem mudar estes números) ---------- */
+/* =========================================================
+   AJUSTES DO JOGO (os alunos podem mudar estes números)
+   ========================================================= */
 
-const SUSPEITA_POR_ARVORE=5;   // quanto a suspeita sobe a cada árvore cortada
-const META_DINHEIRO=1000;      // dinheiro para vencer
-const MUNDO=200;               // tamanho do mapa (em metros)
-const NUM_ARVORES=400;         // quantas árvores existem na floresta
-const VELOCIDADE=0.18;         // velocidade do lenhador
+const SUSPEITA_POR_ARVORE=4;   // quanto a suspeita sobe a cada árvore cortada
+const QUEDA_SUSPEITA=0.012;    // quanto a suspeita cai por quadro quando você para de cortar
+const META_DINHEIRO=3000;      // dinheiro da última missão (para vencer)
+const MUNDO=600;               // tamanho do mapa (em metros)
+const NUM_ARVORES=1800;        // quantas árvores existem na floresta
+const VELOCIDADE=0.2;          // velocidade do lenhador a pé
+const VELOCIDADE_CARRO=0.9;    // velocidade máxima da caminhonete
+const PRECO_TORA=40;           // preço de cada tora na serraria da vila
+const PRECO_TORA_NORTE=80;     // preço de cada tora na Serraria do Norte
+const CAPACIDADE_MOCHILA=10;   // quantas toras cabem na mochila
+const CAPACIDADE_CARRO=30;     // quantas toras cabem depois de ganhar a caminhonete
+const RAIO_FISCAL=28;          // distância que o fiscal consegue ver você cortando
 
-/* ---------- Teclado ---------- */
+// níveis do machado: quanto mais alto, mais rápido corta
+const NIVEIS_MACHADO=[
+{nome:"Machado velho",    dano:15,  preco:0,    cor:0x8d8d8d},
+{nome:"Machado de ferro", dano:22,  preco:200,  cor:0xb0bec5},
+{nome:"Machado de aço",   dano:34,  preco:450,  cor:0xe3f2fd},
+{nome:"Machado de ouro",  dano:50,  preco:900,  cor:0xffd54f},
+{nome:"Motosserra",       dano:100, preco:1600, cor:0xff6f00}
+];
+
+// roupas (skins) da loja da Dona Rosa
+const SKINS=[
+{nome:"Xadrez vermelho", preco:0,   camisa:0xc62828, listra:0x4a0f0f, calca:0x2f4f7a, chapeu:0x33691e},
+{nome:"Explorador",      preco:150, camisa:0xc8b27a, listra:0x8d7b4f, calca:0x5d4037, chapeu:0x556b2f},
+{nome:"Xadrez azul",     preco:200, camisa:0x1e63b5, listra:0x0d2c57, calca:0x37474f, chapeu:0x263238},
+{nome:"Ninja da noite",  preco:300, camisa:0x212121, listra:0x000000, calca:0x303030, chapeu:0x111111},
+{nome:"Dourado",         preco:800, camisa:0xffc107, listra:0xb8860b, calca:0x6d4c41, chapeu:0xffd54f}
+];
+
+/* =========================================================
+   TECLADO
+   ========================================================= */
 
 const keys={};
+const SETAS={arrowup:"w",arrowdown:"s",arrowleft:"a",arrowright:"d"};
 
 addEventListener("keydown",e=>{
-keys[e.key.toLowerCase()]=true;
-if(e.key===" ") e.preventDefault();
-if(fim&&e.key.toLowerCase()==="r") location.reload();
+let k=e.key.toLowerCase();
+if(k===" "||SETAS[k]) e.preventDefault();
+k=SETAS[k]||k;
+keys[k]=true;
+if(!e.repeat) teclaApertada(k);
 });
 
 addEventListener("keyup",e=>{
-keys[e.key.toLowerCase()]=false;
+const k=e.key.toLowerCase();
+keys[SETAS[k]||k]=false;
 });
 
-/* ---------- Cena, câmera e renderizador ---------- */
+addEventListener("blur",()=>{
+for(const k in keys) keys[k]=false;
+});
+
+document.getElementById("inicio").addEventListener("click",iniciarJogo);
+
+/* =========================================================
+   CENA, CÂMERA E RENDERIZADOR
+   ========================================================= */
 
 const scene=new THREE.Scene();
-scene.fog=new THREE.Fog(0xbfe3ff,40,140);
+scene.fog=new THREE.Fog(0xbfe3ff,70,260);
 
-const camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,0.1,600);
+const camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,0.1,2000);
 
 const renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
 renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -160,58 +464,316 @@ camera.updateProjectionMatrix();
 renderer.setSize(innerWidth,innerHeight);
 });
 
-/* ---------- Luzes ---------- */
+/* ---------- pequenas funções de ajuda ---------- */
 
-// luz do céu (azul em cima, verde embaixo)
-const luzCeu=new THREE.HemisphereLight(0xcfeaff,0x557a3a,0.7);
-scene.add(luzCeu);
-
-// sol, que faz as sombras
-const sol=new THREE.DirectionalLight(0xfff1d6,1.1);
-sol.castShadow=true;
-sol.shadow.mapSize.set(2048,2048);
-sol.shadow.camera.left=-40;
-sol.shadow.camera.right=40;
-sol.shadow.camera.top=40;
-sol.shadow.camera.bottom=-40;
-sol.shadow.camera.far=200;
-sol.shadow.bias=-0.0005;
-scene.add(sol);
-scene.add(sol.target);
-
-/* ---------- Relevo: morros suaves ---------- */
-
-// altura do chão em cada ponto (soma de ondas = morrinhos)
-function altura(x,z){
-return 3
-+Math.sin(x*0.05)*1.5
-+Math.cos(z*0.04)*1.5
-+Math.sin((x+z)*0.11)*0.6;
+function mat(cor,extra){
+return new THREE.MeshLambertMaterial(Object.assign({color:cor},extra));
 }
 
-// rio que atravessa a floresta (curva em forma de onda)
+function caixa(l,a,p,material){
+const m=new THREE.Mesh(new THREE.BoxGeometry(l,a,p),material);
+m.castShadow=true;
+m.receiveShadow=true;
+return m;
+}
+
+function suave(t){
+t=Math.max(0,Math.min(1,t));
+return t*t*(3-2*t);
+}
+
+function limitar(v,min,max){
+return Math.max(min,Math.min(max,v));
+}
+
+function distancia(a,b){
+return Math.hypot(a.x-b.x,a.z-b.z);
+}
+
+// placa de texto que flutua no mundo 3D (nomes dos personagens)
+function criarRotulo(texto,corTexto,fundo,largura){
+const c=document.createElement("canvas");
+c.width=512;
+c.height=128;
+const g=c.getContext("2d");
+let tamanho=56;
+g.font="bold "+tamanho+"px Trebuchet MS, Arial";
+while(g.measureText(texto).width>460){
+tamanho-=4;
+g.font="bold "+tamanho+"px Trebuchet MS, Arial";
+}
+if(fundo){
+g.fillStyle=fundo;
+g.beginPath();
+g.moveTo(50,14);g.lineTo(462,14);g.quadraticCurveTo(502,14,502,64);
+g.quadraticCurveTo(502,114,462,114);g.lineTo(50,114);
+g.quadraticCurveTo(10,114,10,64);g.quadraticCurveTo(10,14,50,14);
+g.fill();
+}
+g.fillStyle=corTexto||"#fff";
+g.textAlign="center";
+g.textBaseline="middle";
+g.fillText(texto,256,68);
+const sprite=new THREE.Sprite(new THREE.SpriteMaterial({
+map:new THREE.CanvasTexture(c),
+transparent:true
+}));
+largura=largura||4;
+sprite.scale.set(largura,largura/4,1);
+return sprite;
+}
+
+/* =========================================================
+   O MAPA: relevo, rio, lago, estradas e lugares importantes
+   ========================================================= */
+
+const NIVEL_AGUA=0;
+
+const VILA={x:MUNDO*0.5,z:MUNDO*0.5};
+const LAGO={x:MUNDO*0.25,z:MUNDO*0.78,raio:40};
+const NORTE={x:MUNDO*0.25,z:MUNDO*0.12};          // Serraria do Norte
+const FLORESTA_LESTE={x:MUNDO*0.87,z:MUNDO*0.43};  // floresta antiga, com castanheiras
+
+// o rio corre de norte a sul fazendo curvas
+function centroRio(z){
+return MUNDO*0.7+Math.sin(z*0.02)*35;
+}
+
 function distanciaRio(x,z){
-const centroRio=Math.sin(z*0.04)*25+40;
-return Math.abs(x-centroRio);
+return Math.abs(x-centroRio(z));
 }
 
-function alturaFinal(x,z){
-const d=distanciaRio(x,z);
-let h=altura(x,z);
-// cava o leito do rio
-if(d<9) h-=(9-d)*0.9;
+// estradas de terra (cada uma é uma lista de pontos)
+const ESTRADAS=[
+[[VILA.x,VILA.z],[VILA.x-20,VILA.z-80],[VILA.x-90,VILA.z-160],[NORTE.x+5,NORTE.z+12]],
+[[VILA.x,VILA.z],[MUNDO*0.95,VILA.z]],
+[[VILA.x,VILA.z],[VILA.x-80,VILA.z+100],[LAGO.x+30,LAGO.z-32]]
+];
+
+function distSegmento(px,pz,ax,az,bx,bz){
+const vx=bx-ax, vz=bz-az;
+const t=limitar(((px-ax)*vx+(pz-az)*vz)/(vx*vx+vz*vz),0,1);
+return Math.hypot(px-(ax+vx*t),pz-(az+vz*t));
+}
+
+function distanciaEstrada(x,z){
+let menor=1e9;
+for(const estrada of ESTRADAS){
+for(let i=0;i<estrada.length-1;i++){
+const d=distSegmento(x,z,estrada[i][0],estrada[i][1],estrada[i+1][0],estrada[i+1][1]);
+if(d<menor) menor=d;
+}
+}
+return menor;
+}
+
+// altura do chão sem o rio e o lago (soma de ondas = morrinhos)
+function alturaBase(x,z){
+
+let h=5
++Math.sin(x*0.02)*2
++Math.cos(z*0.025)*2
++Math.sin((x+z)*0.07)*0.7
++Math.sin(x*0.13-z*0.09)*0.3;
+
+// fora do mapa o terreno vira serra
+const fora=Math.max(0,-x,x-MUNDO,-z,z-MUNDO);
+h+=fora*0.35;
+
+// a vila fica num terreno plano
+const dv=Math.hypot(x-VILA.x,z-VILA.z);
+const t=suave((dv-40)/25);
+h=5*(1-t)+h*t;
+
 return h;
 }
 
-const NIVEL_AGUA=-1;
+// altura final do chão (com o rio e o lago cavados)
+function alturaFinal(x,z){
 
-// chão com cores diferentes (grama, terra, areia perto do rio)
-const chaoGeo=new THREE.PlaneGeometry(MUNDO+120,MUNDO+120,160,160);
+let h=alturaBase(x,z);
+
+const dr=distanciaRio(x,z);
+if(dr<12) h-=(12-dr)*0.75;
+
+const dl=Math.hypot(x-LAGO.x,z-LAGO.z);
+const t=suave((LAGO.raio+12-dl)/18);
+h=h*(1-t)-3*t;
+
+return h;
+}
+
+// ponte para atravessar o rio
+const PONTE={x:centroRio(VILA.z),z:VILA.z,comprimento:30};
+const PONTE_Y=Math.max(
+alturaBase(PONTE.x-PONTE.comprimento/2,PONTE.z),
+alturaBase(PONTE.x+PONTE.comprimento/2,PONTE.z)
+)+0.3;
+
+function naPonte(x,z){
+return Math.abs(z-PONTE.z)<2.6&&Math.abs(x-PONTE.x)<PONTE.comprimento/2;
+}
+
+// altura onde os pés pisam (na ponte ou no chão)
+function alturaChao(x,z){
+return naPonte(x,z)?PONTE_Y:alturaFinal(x,z);
+}
+
+// coisas que bloqueiam a passagem (casas, postes...)
+const obstaculos=[];
+
+// pode andar neste ponto?  (raio = tamanho de quem anda)
+function podeAndar(x,z,raio){
+
+if(x<3||z<3||x>MUNDO-3||z>MUNDO-3) return false;
+
+if(!naPonte(x,z)&&alturaFinal(x,z)<NIVEL_AGUA+0.4) return false;
+
+for(const o of obstaculos){
+if(Math.hypot(x-o.x,z-o.z)<o.r+raio) return false;
+}
+
+for(const t of trees){
+if(t.cortada) continue;
+const dx=x-t.x;
+if(dx>5||dx<-5) continue;
+const dz=z-t.z;
+if(dz>5||dz<-5) continue;
+if(dx*dx+dz*dz<(t.raio+raio)*(t.raio+raio)) return false;
+}
+
+return true;
+}
+
+// sorteia um lugar livre para colocar árvores, pedras, flores...
+function pontoLivre(margemEstrada,raioVila){
+for(let tentativa=0;tentativa<40;tentativa++){
+const x=4+Math.random()*(MUNDO-8);
+const z=4+Math.random()*(MUNDO-8);
+if(alturaFinal(x,z)<NIVEL_AGUA+0.8) continue;
+if(distanciaEstrada(x,z)<margemEstrada) continue;
+if(Math.hypot(x-VILA.x,z-VILA.z)<raioVila) continue;
+if(Math.hypot(x-NORTE.x,z-NORTE.z)<22) continue;
+if(Math.abs(z-PONTE.z)<6&&Math.abs(x-PONTE.x)<22) continue;
+return{x,z};
+}
+return null;
+}
+
+/* =========================================================
+   CÉU: cúpula com degradê, estrelas, sol, lua e nuvens
+   ========================================================= */
+
+const ceuMat=new THREE.ShaderMaterial({
+uniforms:{
+topo:{value:new THREE.Color(0x3f8fe0)},
+horizonte:{value:new THREE.Color(0xbfe3ff)}
+},
+vertexShader:`
+varying vec3 vPos;
+void main(){
+vPos=normalize(position);
+gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
+}`,
+fragmentShader:`
+uniform vec3 topo;
+uniform vec3 horizonte;
+varying vec3 vPos;
+void main(){
+float t=clamp(vPos.y*1.8,0.0,1.0);
+gl_FragColor=vec4(mix(horizonte,topo,pow(t,0.7)),1.0);
+}`,
+side:THREE.BackSide,
+depthWrite:false
+});
+
+const ceu=new THREE.Mesh(new THREE.SphereGeometry(900,32,16),ceuMat);
+ceu.renderOrder=-1;
+scene.add(ceu);
+
+// estrelas (aparecem à noite)
+const estrelasPos=[];
+for(let i=0;i<900;i++){
+const a=Math.random()*Math.PI*2;
+const y=0.1+Math.random()*0.9;
+const r=Math.sqrt(1-y*y);
+estrelasPos.push(Math.cos(a)*r*850,y*850,Math.sin(a)*r*850);
+}
+const estrelasGeo=new THREE.BufferGeometry();
+estrelasGeo.setAttribute("position",new THREE.Float32BufferAttribute(estrelasPos,3));
+const estrelas=new THREE.Points(estrelasGeo,new THREE.PointsMaterial({
+color:0xffffff,size:2,sizeAttenuation:false,transparent:true,opacity:0,fog:false
+}));
+scene.add(estrelas);
+
+const discoSol=new THREE.Mesh(
+new THREE.SphereGeometry(30,16,16),
+new THREE.MeshBasicMaterial({color:0xfff3a0,fog:false})
+);
+scene.add(discoSol);
+
+const discoLua=new THREE.Mesh(
+new THREE.SphereGeometry(20,16,16),
+new THREE.MeshBasicMaterial({color:0xe8ecf2,fog:false})
+);
+scene.add(discoLua);
+
+const nuvens=[];
+const nuvemMat=mat(0xffffff,{transparent:true,opacity:0.92});
+
+for(let i=0;i<35;i++){
+
+const nuvem=new THREE.Group();
+
+for(let j=0;j<6;j++){
+const bola=new THREE.Mesh(new THREE.IcosahedronGeometry(5+Math.random()*4,0),nuvemMat);
+bola.position.set(j*6-15,Math.random()*3,Math.random()*6);
+bola.scale.y=0.6;
+nuvem.add(bola);
+}
+
+nuvem.position.set(Math.random()*MUNDO*1.4-MUNDO*0.2,90+Math.random()*30,Math.random()*MUNDO);
+scene.add(nuvem);
+nuvens.push(nuvem);
+
+}
+
+/* =========================================================
+   LUZES
+   ========================================================= */
+
+const luzCeu=new THREE.HemisphereLight(0xcfeaff,0x557a3a,0.7);
+scene.add(luzCeu);
+
+// sol (ou lua, à noite): é a luz que faz as sombras
+const sol=new THREE.DirectionalLight(0xfff1d6,1);
+sol.castShadow=true;
+sol.shadow.mapSize.set(2048,2048);
+sol.shadow.camera.left=-60;
+sol.shadow.camera.right=60;
+sol.shadow.camera.top=60;
+sol.shadow.camera.bottom=-60;
+sol.shadow.camera.far=300;
+sol.shadow.bias=-0.0006;
+scene.add(sol);
+scene.add(sol.target);
+
+/* =========================================================
+   TERRENO E ÁGUA
+   ========================================================= */
+
+const TAM_TERRENO=MUNDO+400;
+const chaoGeo=new THREE.PlaneGeometry(TAM_TERRENO,TAM_TERRENO,200,200);
 chaoGeo.rotateX(-Math.PI/2);
 
 const cores=[];
 const pos=chaoGeo.attributes.position;
 const cor=new THREE.Color();
+const corGrama1=new THREE.Color(0x76b84a);
+const corGrama2=new THREE.Color(0x4e8f34);
+const corAreia=new THREE.Color(0xd9c48a);
+const corTerra=new THREE.Color(0xa47c50);
+const corPedra=new THREE.Color(0x7c8a6a);
 
 for(let i=0;i<pos.count;i++){
 
@@ -220,12 +782,24 @@ const z=pos.getZ(i)+MUNDO/2;
 const h=alturaFinal(x,z);
 pos.setY(i,h);
 
-if(h<NIVEL_AGUA+0.6) cor.set(0xd9c48a);          // areia
-else if(h>5) cor.set(0x5f9a3c);                // topo do morro
-else cor.set(0x6fb446);                          // grama
+// mistura dois verdes para o chão não ficar todo igual
+const mancha=(Math.sin(x*0.045)*Math.cos(z*0.06)+Math.sin(x*0.011+z*0.013))/4+0.5;
+cor.copy(corGrama1).lerp(corGrama2,mancha);
 
-// pequena variação para não ficar tudo igual
-cor.offsetHSL(0,0,(Math.random()-0.5)*0.05);
+if(h>9) cor.lerp(corPedra,suave((h-9)/8));
+
+// vila: chão de terra batida no meio
+const dv=Math.hypot(x-VILA.x,z-VILA.z);
+if(dv<18) cor.lerp(corTerra,suave((18-dv)/6)*0.8);
+
+// estradas de terra
+const de=distanciaEstrada(x,z);
+if(de<5) cor.lerp(corTerra,suave((5-de)/2.5));
+
+// areia perto da água
+if(h<NIVEL_AGUA+0.9) cor.copy(corAreia);
+
+cor.offsetHSL(0,0,(Math.random()-0.5)*0.04);
 cores.push(cor.r,cor.g,cor.b);
 
 }
@@ -233,408 +807,249 @@ cores.push(cor.r,cor.g,cor.b);
 chaoGeo.setAttribute("color",new THREE.Float32BufferAttribute(cores,3));
 chaoGeo.computeVertexNormals();
 
-const chao=new THREE.Mesh(
-chaoGeo,
-new THREE.MeshLambertMaterial({vertexColors:true})
-);
+const chao=new THREE.Mesh(chaoGeo,new THREE.MeshLambertMaterial({vertexColors:true}));
 chao.position.set(MUNDO/2,0,MUNDO/2);
 chao.receiveShadow=true;
 scene.add(chao);
 
-// água do rio
 const agua=new THREE.Mesh(
-new THREE.PlaneGeometry(MUNDO+120,MUNDO+120),
-new THREE.MeshPhongMaterial({color:0x3a8fd0,transparent:true,opacity:0.8,shininess:90})
+new THREE.PlaneGeometry(TAM_TERRENO,TAM_TERRENO),
+new THREE.MeshPhongMaterial({
+color:0x2f86c9,specular:0xaad4ff,shininess:90,transparent:true,opacity:0.82
+})
 );
 agua.rotation.x=-Math.PI/2;
 agua.position.set(MUNDO/2,NIVEL_AGUA,MUNDO/2);
+agua.receiveShadow=true;
 scene.add(agua);
 
-/* ---------- Montanhas no horizonte ---------- */
+/* =========================================================
+   VEGETAÇÃO: grama, flores, arbustos e pedras
+   (InstancedMesh desenha milhares de cópias de uma vez, bem rápido)
+   ========================================================= */
 
-const montanhaMat=new THREE.MeshLambertMaterial({color:0x4f7a5a,flatShading:true});
-const neveMat=new THREE.MeshLambertMaterial({color:0xf2f6f8,flatShading:true});
+const dummy=new THREE.Object3D();
 
-for(let i=0;i<40;i++){
+function espalhar(geo,material,quantidade,coresLista,margemEstrada,raioVila,configurar){
 
-const ang=i/40*Math.PI*2;
-const raio=MUNDO*0.9+Math.random()*30;
-const alto=25+Math.random()*35;
+const mesh=new THREE.InstancedMesh(geo,material,quantidade);
+const c=new THREE.Color();
+let n=0;
 
-const m=new THREE.Mesh(new THREE.ConeGeometry(18+Math.random()*14,alto,6),montanhaMat);
-m.position.set(MUNDO/2+Math.cos(ang)*raio,alto/2-3,MUNDO/2+Math.sin(ang)*raio);
-scene.add(m);
-
-// pico com neve nas montanhas mais altas
-if(alto>45){
-const neve=new THREE.Mesh(new THREE.ConeGeometry(5,alto*0.2,6),neveMat);
-neve.position.set(m.position.x,alto-3-alto*0.1,m.position.z);
-scene.add(neve);
+for(let i=0;i<quantidade;i++){
+const p=pontoLivre(margemEstrada,raioVila);
+if(!p) continue;
+dummy.position.set(p.x,alturaFinal(p.x,p.z),p.z);
+dummy.rotation.set(0,Math.random()*Math.PI*2,0);
+dummy.scale.set(1,1,1);
+if(configurar) configurar(dummy);
+dummy.updateMatrix();
+mesh.setMatrixAt(n,dummy.matrix);
+c.setHex(coresLista[Math.floor(Math.random()*coresLista.length)]);
+c.offsetHSL(0,0,(Math.random()-0.5)*0.08);
+mesh.setColorAt(n,c);
+n++;
 }
 
+mesh.count=n;
+mesh.frustumCulled=false;
+scene.add(mesh);
+return mesh;
 }
 
-/* ---------- Sol, lua e nuvens visíveis no céu ---------- */
-
-const discoSol=new THREE.Mesh(
-new THREE.SphereGeometry(6,16,16),
-new THREE.MeshBasicMaterial({color:0xfff3a0,fog:false})
-);
-scene.add(discoSol);
-
-const discoLua=new THREE.Mesh(
-new THREE.SphereGeometry(4,16,16),
-new THREE.MeshBasicMaterial({color:0xe8ecf2,fog:false})
-);
-scene.add(discoLua);
-
-const nuvens=[];
-const nuvemMat=new THREE.MeshLambertMaterial({color:0xffffff,transparent:true,opacity:0.9});
-
-for(let i=0;i<25;i++){
-
-const nuvem=new THREE.Group();
-
-for(let j=0;j<5;j++){
-const bola=new THREE.Mesh(new THREE.SphereGeometry(3+Math.random()*2,8,8),nuvemMat);
-bola.position.set(j*3-6,Math.random()*1.5,Math.random()*3);
-nuvem.add(bola);
-}
-
-nuvem.position.set(Math.random()*MUNDO*1.4-MUNDO*0.2,35+Math.random()*15,Math.random()*MUNDO);
-scene.add(nuvem);
-nuvens.push(nuvem);
-
-}
-
-/* ---------- Pedras, flores e arbustos (decoração) ---------- */
-
-const pedraMat=new THREE.MeshLambertMaterial({color:0x9e9e9e,flatShading:true});
-const arbustoMat=new THREE.MeshLambertMaterial({color:0x3f8f3a,flatShading:true});
-const coresFlores=[0xff5c8a,0xffe14d,0xffffff,0xb070ff];
-
-function pontoSeco(){
-// sorteia um ponto que não seja dentro do rio
-let x,z;
-do{
-x=Math.random()*MUNDO;
-z=Math.random()*MUNDO;
-}while(distanciaRio(x,z)<10);
-return{x,z};
-}
-
-for(let i=0;i<120;i++){
-const p=pontoSeco();
-const s=0.4+Math.random()*1.2;
-const pedra=new THREE.Mesh(new THREE.DodecahedronGeometry(s,0),pedraMat);
-pedra.position.set(p.x,alturaFinal(p.x,p.z)+s*0.3,p.z);
-pedra.rotation.set(Math.random()*3,Math.random()*3,0);
-pedra.castShadow=true;
-scene.add(pedra);
-}
-
-for(let i=0;i<250;i++){
-const p=pontoSeco();
-const arbusto=new THREE.Mesh(new THREE.IcosahedronGeometry(0.6+Math.random()*0.5,0),arbustoMat);
-arbusto.position.set(p.x,alturaFinal(p.x,p.z)+0.3,p.z);
-arbusto.castShadow=true;
-scene.add(arbusto);
-}
-
-const caule=new THREE.CylinderGeometry(0.03,0.03,0.4);
-const petala=new THREE.SphereGeometry(0.12,6,6);
-const cauleMat=new THREE.MeshLambertMaterial({color:0x2e7d32});
-
-for(let i=0;i<600;i++){
-const p=pontoSeco();
-const h=alturaFinal(p.x,p.z);
-const flor=new THREE.Group();
-const c=new THREE.Mesh(caule,cauleMat);
-c.position.y=0.2;
-const f=new THREE.Mesh(petala,new THREE.MeshLambertMaterial({
-color:coresFlores[i%coresFlores.length]
-}));
-f.position.y=0.42;
-flor.add(c,f);
-flor.position.set(p.x,h,p.z);
-scene.add(flor);
-}
-
-/* ---------- Árvores ---------- */
-
-// formas e cores reaproveitadas por todas as árvores
-const troncoGeo=new THREE.CylinderGeometry(0.25,0.4,3,7);
-const troncoMat=new THREE.MeshLambertMaterial({color:0x6d4c2f});
-const tocoGeo=new THREE.CylinderGeometry(0.4,0.45,0.5,7);
-const tocoMat=new THREE.MeshLambertMaterial({color:0x8d6e4b});
-const pinheiroGeo=[
-new THREE.ConeGeometry(2.0,2.6,8),
-new THREE.ConeGeometry(1.6,2.2,8),
-new THREE.ConeGeometry(1.1,1.8,8)
-];
-const copaGeo=new THREE.IcosahedronGeometry(2,1);
-const verdes=[0x1f6b2a,0x2e7d32,0x388e3c,0x245c2c].map(
-c=>new THREE.MeshLambertMaterial({color:c,flatShading:true})
-);
-
-function criarArvore(x,z){
-
-const grupo=new THREE.Group();
-
-const tronco=new THREE.Mesh(troncoGeo,troncoMat);
-tronco.position.y=1.5;
-tronco.castShadow=true;
-grupo.add(tronco);
-
-const mat=verdes[Math.floor(Math.random()*verdes.length)];
-
-if(Math.random()<0.5){
-
-// pinheiro: três cones empilhados
-pinheiroGeo.forEach((g,i)=>{
-const cone=new THREE.Mesh(g,mat);
-cone.position.y=3+i*1.3;
-cone.castShadow=true;
-grupo.add(cone);
+const gramaGeo=new THREE.ConeGeometry(0.12,0.8,3,1,true);
+gramaGeo.translate(0,0.4,0);
+const grama=espalhar(gramaGeo,mat(0xffffff),20000,[0x5c9e3a,0x6fb446,0x4d8a2f,0x85c35a],3,14,d=>{
+d.rotation.x=(Math.random()-0.5)*0.4;
+d.scale.set(1,0.6+Math.random()*0.9,1);
 });
 
-}else{
-
-// árvore de copa redonda
-const copa=new THREE.Mesh(copaGeo,mat);
-copa.position.y=4.2;
-copa.scale.set(1,0.9,1);
-copa.castShadow=true;
-grupo.add(copa);
-
+const caule=new THREE.CylinderGeometry(0.03,0.03,0.45,3,1,true);
+caule.translate(0,0.22,0);
+const petala=new THREE.IcosahedronGeometry(0.14,0);
+petala.translate(0,0.47,0);
+const floresMatrizes=[];
+const flores=espalhar(petala,mat(0xffffff),1200,[0xff5c8a,0xffe14d,0xffffff,0xb070ff,0xff8a3d],3,14);
+const caules=new THREE.InstancedMesh(caule,mat(0x2e7d32),flores.count);
+for(let i=0;i<flores.count;i++){
+flores.getMatrixAt(i,dummy.matrix);
+caules.setMatrixAt(i,dummy.matrix);
 }
+caules.frustumCulled=false;
+scene.add(caules);
 
-const tamanho=0.8+Math.random()*0.6;
-grupo.scale.setScalar(tamanho);
-grupo.rotation.y=Math.random()*Math.PI*2;
-grupo.position.set(x,alturaFinal(x,z),z);
-scene.add(grupo);
+const arbustos=espalhar(new THREE.IcosahedronGeometry(0.9,0),mat(0xffffff,{flatShading:true}),700,
+[0x3f8f3a,0x2f7a2c,0x4c9a3f],4,30,d=>{
+d.position.y+=0.3;
+d.scale.setScalar(0.6+Math.random()*0.8);
+});
+arbustos.castShadow=true;
 
-return grupo;
+const pedras=espalhar(new THREE.DodecahedronGeometry(1,0),mat(0xffffff,{flatShading:true}),350,
+[0x9e9e9e,0x8a8a8a,0xb0aea5],4,30,d=>{
+const s=0.4+Math.random()*1.3;
+d.scale.set(s,s*0.7,s);
+d.position.y+=s*0.2;
+d.rotation.set(Math.random(),Math.random()*3,Math.random());
+});
+pedras.castShadow=true;
+pedras.receiveShadow=true;
 
-}
+/* =========================================================
+   ÁRVORES
+   ========================================================= */
+
+// formas usadas por todas as árvores
+const GEO_ARVORE={
+tronco:new THREE.CylinderGeometry(0.25,0.4,3,7).translate(0,1.5,0),
+cone0:new THREE.ConeGeometry(2.0,2.6,8),
+cone1:new THREE.ConeGeometry(1.6,2.2,8),
+cone2:new THREE.ConeGeometry(1.1,1.8,8),
+copa:new THREE.IcosahedronGeometry(2,1),
+copaPequena:new THREE.IcosahedronGeometry(2,0)
+};
+
+// de que partes cada tipo de árvore é feito
+// (y = altura da parte, x = deslocamento, s = tamanho)
+const TIPOS_ARVORE={
+pinheiro:[
+{geo:"tronco",cor:"tronco"},
+{geo:"cone0",y:3.0,cor:"folha"},
+{geo:"cone1",y:4.3,cor:"folha"},
+{geo:"cone2",y:5.6,cor:"folha"}
+],
+redonda:[
+{geo:"tronco",cor:"tronco"},
+{geo:"copa",y:4.2,sy:0.9,cor:"folha"},
+{geo:"copaPequena",y:4.6,x:1.0,s:0.6,cor:"folha"},
+{geo:"copaPequena",y:4.4,x:-0.9,s:0.55,cor:"folha"}
+],
+// castanheira: árvore enorme, protegida por lei
+castanheira:[
+{geo:"tronco",sx:1.3,sy:2.6,sz:1.3,cor:"troncoClaro"},
+{geo:"copa",y:8.2,sx:2.3,sy:0.75,sz:2.3,cor:"folhaEscura"},
+{geo:"copaPequena",y:8.9,x:1.6,s:1.2,cor:"folhaEscura"},
+{geo:"copaPequena",y:8.7,x:-1.8,s:1.1,cor:"folhaEscura"}
+]
+};
+
+const CORES_ARVORE={
+tronco:[0x6d4c2f,0x5d4030,0x7a5636],
+troncoClaro:[0x9a8a78,0x8c7b69],
+folha:[0x1f6b2a,0x2e7d32,0x388e3c,0x245c2c,0x43a047],
+folhaEscura:[0x2f5d2a,0x26502a]
+};
 
 const trees=[];
 
 for(let i=0;i<NUM_ARVORES;i++){
 
-const p=pontoSeco();
+const p=pontoLivre(5,48);
+if(!p) continue;
 
-// deixa uma clareira no ponto de partida
-if(Math.hypot(p.x-MUNDO/2,p.z-MUNDO/2)<6){ i--; continue; }
+// do outro lado do rio fica a floresta antiga, com castanheiras
+let tipo=Math.random()<0.5?"pinheiro":"redonda";
+if(p.x>centroRio(p.z)+15&&Math.random()<0.18) tipo="castanheira";
+
+const castanheira=(tipo==="castanheira");
 
 trees.push({
 x:p.x,
 z:p.z,
-vida:100,
+y:alturaFinal(p.x,p.z),
+tipo:tipo,
+escala:castanheira?1.5:0.8+Math.random()*0.6,
+rot:Math.random()*Math.PI*2,
+raio:castanheira?1.0:0.5,
+vida:castanheira?300:100,
+vidaMax:castanheira?300:100,
 cortada:false,
-caindo:0,           // de 0 até 1 enquanto a árvore cai
-modelo:criarArvore(p.x,p.z)
+tremer:0,
+partes:[]
 });
 
 }
 
-// quando a árvore termina de cair, sobra só o toco
-function virarToco(tree){
-
-scene.remove(tree.modelo);
-
-const toco=new THREE.Mesh(tocoGeo,tocoMat);
-toco.position.set(tree.x,alturaFinal(tree.x,tree.z)+0.25,tree.z);
-toco.castShadow=true;
-scene.add(toco);
-
+// conta quantas cópias de cada forma vamos precisar
+const contagem={};
+for(const t of trees){
+for(const parte of TIPOS_ARVORE[t.tipo]){
+contagem[parte.geo]=(contagem[parte.geo]||0)+1;
+}
 }
 
-/* ---------- Caminhão do lenhador (perto do ponto de partida) ---------- */
-
-function criarCaminhao(){
-
-const g=new THREE.Group();
-const vermelho=new THREE.MeshLambertMaterial({color:0x8b2b1f});
-const cinza=new THREE.MeshLambertMaterial({color:0x37474f});
-const vidro=new THREE.MeshLambertMaterial({color:0x90caf9});
-const preto=new THREE.MeshLambertMaterial({color:0x111111});
-const madeiraMat=new THREE.MeshLambertMaterial({color:0xa1784e});
-
-const cabine=new THREE.Mesh(new THREE.BoxGeometry(2.2,1.8,2),vermelho);
-cabine.position.set(2.2,1.5,0);
-const janela=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.8,1.7),vidro);
-janela.position.set(3.31,1.9,0);
-const carroceria=new THREE.Mesh(new THREE.BoxGeometry(4,0.4,2.2),cinza);
-carroceria.position.set(-0.8,0.9,0);
-g.add(cabine,janela,carroceria);
-
-// toras empilhadas na carroceria
-for(let i=0;i<5;i++){
-const tora=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,3.6,8),madeiraMat);
-tora.rotation.z=Math.PI/2;
-tora.position.set(-0.8,1.4+Math.floor(i/3)*0.55,(i%3-1)*0.62+(i>=3?0.31:0));
-g.add(tora);
-}
-
-// rodas
-[[2.2,1.1],[2.2,-1.1],[-1.8,1.1],[-1.8,-1.1]].forEach(([x,z])=>{
-const roda=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,0.4,12),preto);
-roda.rotation.x=Math.PI/2;
-roda.position.set(x,0.5,z);
-g.add(roda);
-});
-
-g.traverse(o=>{ o.castShadow=true; });
-
-const x=MUNDO/2+4, z=MUNDO/2-3;
-g.position.set(x,alturaFinal(x,z),z);
-g.rotation.y=0.4;
-scene.add(g);
-
-}
-
-criarCaminhao();
-
-/* ---------- O lenhador ilegal ---------- */
-
-function caixa(l,a,p,cor){
-const m=new THREE.Mesh(
-new THREE.BoxGeometry(l,a,p),
-new THREE.MeshLambertMaterial({color:cor})
+const meshesArvore={};
+for(const nome in GEO_ARVORE){
+const m=new THREE.InstancedMesh(
+GEO_ARVORE[nome],
+mat(0xffffff,{flatShading:nome!=="tronco"}),
+contagem[nome]||1
 );
 m.castShadow=true;
-return m;
+m.receiveShadow=true;
+m.frustumCulled=false;
+m.usados=0;
+scene.add(m);
+meshesArvore[nome]=m;
 }
 
-const lenhador=new THREE.Group();
-
-// pernas (calça jeans e botas)
-const pernaE=new THREE.Group();
-const pernaD=new THREE.Group();
-
-[pernaE,pernaD].forEach((perna,i)=>{
-const calca=caixa(0.32,0.8,0.34,0x2f4f7a);
-calca.position.y=-0.4;
-const bota=caixa(0.36,0.25,0.5,0x3e2723);
-bota.position.set(0,-0.85,0.07);
-perna.add(calca,bota);
-perna.position.set(i===0?-0.2:0.2,0.95,0);
-lenhador.add(perna);
-});
-
-// corpo com camisa xadrez (vermelha) e suspensórios
-const corpo=caixa(0.8,0.9,0.45,0xc62828);
-corpo.position.y=1.42;
-lenhador.add(corpo);
-
-const listra1=caixa(0.82,0.08,0.47,0x4a0f0f);
-listra1.position.y=1.25;
-const listra2=listra1.clone();
-listra2.position.y=1.55;
-lenhador.add(listra1,listra2);
-
-[-0.22,0.22].forEach(x=>{
-const susp=caixa(0.08,0.92,0.47,0x3e2723);
-susp.position.set(x,1.42,0);
-lenhador.add(susp);
-});
-
-// cabeça, barba e boné
-const cabeca=new THREE.Group();
-cabeca.position.y=2.12;
-
-const rosto=caixa(0.5,0.5,0.5,0xf1c27d);
-const barba=caixa(0.52,0.25,0.15,0x5d3a1a);
-barba.position.set(0,-0.15,0.22);
-const olhoE=caixa(0.07,0.07,0.02,0x111111);
-olhoE.position.set(-0.11,0.07,0.26);
-const olhoD=olhoE.clone();
-olhoD.position.x=0.11;
-const bone=caixa(0.56,0.18,0.56,0x33691e);
-bone.position.y=0.3;
-const aba=caixa(0.56,0.05,0.3,0x33691e);
-aba.position.set(0,0.23,0.38);
-
-cabeca.add(rosto,barba,olhoE,olhoD,bone,aba);
-lenhador.add(cabeca);
-
-// braços (o direito segura o machado)
-const bracoE=new THREE.Group();
-const bracoD=new THREE.Group();
-
-[bracoE,bracoD].forEach((braco,i)=>{
-const manga=caixa(0.24,0.7,0.26,0xc62828);
-manga.position.y=-0.35;
-const mao=caixa(0.22,0.2,0.22,0xf1c27d);
-mao.position.y=-0.8;
-braco.add(manga,mao);
-braco.position.set(i===0?-0.53:0.53,1.82,0);
-lenhador.add(braco);
-});
-
-// machado
-const machado=new THREE.Group();
-const cabo=caixa(0.08,1.1,0.08,0x8d6e63);
-cabo.position.y=0.35;
-const lamina=caixa(0.05,0.35,0.4,0xb0bec5);
-lamina.position.set(0,0.8,0.18);
-machado.add(cabo,lamina);
-machado.position.set(0,-0.85,0.1);
-machado.rotation.x=Math.PI/2;
-bracoD.add(machado);
-
-scene.add(lenhador);
-
-const player={
-x:MUNDO/2,
-z:MUNDO/2,
-direcao:0      // para onde o lenhador está olhando
-};
-
-/* ---------- Chuva ---------- */
-
-const NUM_GOTAS=1500;
-const gotasGeo=new THREE.BufferGeometry();
-const gotasPos=new Float32Array(NUM_GOTAS*3);
-gotasGeo.setAttribute("position",new THREE.BufferAttribute(gotasPos,3));
-
-const chuva=new THREE.Points(
-gotasGeo,
-new THREE.PointsMaterial({color:0xaaccff,size:0.08,transparent:true,opacity:0.8})
+// tocos (aparecem quando a árvore é cortada)
+const tocos=new THREE.InstancedMesh(
+new THREE.CylinderGeometry(0.4,0.45,0.5,7).translate(0,0.25,0),
+mat(0x8d6e4b),
+trees.length
 );
-chuva.visible=false;
-scene.add(chuva);
+tocos.castShadow=true;
+tocos.frustumCulled=false;
+scene.add(tocos);
 
-for(let i=0;i<NUM_GOTAS;i++){
-gotasPos[i*3]=(Math.random()-0.5)*60;
-gotasPos[i*3+1]=Math.random()*30;
-gotasPos[i*3+2]=(Math.random()-0.5)*60;
+const MATRIZ_ZERO=new THREE.Matrix4().makeScale(0,0,0);
+const tmpMatriz=new THREE.Matrix4();
+
+// coloca (ou atualiza) as partes de uma árvore no lugar
+function posicionarArvore(tree,inclinacao){
+dummy.position.set(tree.x,tree.y,tree.z);
+dummy.rotation.set(0,tree.rot,inclinacao||0);
+dummy.scale.setScalar(tree.escala);
+dummy.updateMatrix();
+for(const p of tree.partes){
+tmpMatriz.multiplyMatrices(dummy.matrix,p.local);
+p.mesh.setMatrixAt(p.idx,tmpMatriz);
+p.mesh.instanceMatrix.needsUpdate=true;
+}
 }
 
-/* ---------- Estado do jogo ---------- */
+trees.forEach((tree,i)=>{
 
-let dinheiro=0;
-let madeira=0;
-let suspeita=0;
-let clima="Sol";
-let tempo=1.2;     // começa de manhã
-let quadro=0;
-let fim=false;
-let motivoFim="";
-let missaoCumprida=false;
-let arvoreAlvo=null;   // árvore que está sendo cortada agora
+for(const parte of TIPOS_ARVORE[tree.tipo]){
 
-setInterval(()=>{
+const mesh=meshesArvore[parte.geo];
+const lista=CORES_ARVORE[parte.cor];
+const c=new THREE.Color(lista[Math.floor(Math.random()*lista.length)]);
+c.offsetHSL(0,0,(Math.random()-0.5)*0.06);
 
-const lista=["Sol","Chuva","Neblina"];
+const s=parte.s||1;
+const local=new THREE.Matrix4().compose(
+new THREE.Vector3(parte.x||0,parte.y||0,0),
+new THREE.Quaternion(),
+new THREE.Vector3(parte.sx||s,parte.sy||s,parte.sz||s)
+);
 
-clima=lista[Math.floor(Math.random()*lista.length)];
+const idx=mesh.usados++;
+mesh.setColorAt(idx,c);
+tree.partes.push({mesh,idx,local,cor:c});
 
-document.getElementById("weather").innerText=clima;
+}
 
-},15000);
+posicionarArvore(tree,0);
+tocos.setMatrixAt(i,MATRIZ_ZERO);
+tree.indice=i;
+
+});
+
+for(const nome in meshesArvore){
+if(meshesArvore[nome].instanceColor) meshesArvore[nome].instanceColor.needsUpdate=true;
+}
 
 function cortadas(){
 let n=0;
@@ -644,18 +1059,1410 @@ if(t.cortada) n++;
 return n;
 }
 
-/* ---------- Lógica a cada quadro ---------- */
+// árvore caindo: as partes viram objetos normais e giram até o chão
+const quedas=[];
 
-function update(){
+function derrubar(tree,direcao){
 
-let dx=0, dz=0;
+const g=new THREE.Group();
+g.position.set(tree.x,tree.y,tree.z);
+g.scale.setScalar(tree.escala);
 
+for(const p of tree.partes){
+const m=new THREE.Mesh(p.mesh.geometry,mat(p.cor,{flatShading:true}));
+m.applyMatrix4(p.local);
+m.castShadow=true;
+g.add(m);
+p.mesh.setMatrixAt(p.idx,MATRIZ_ZERO);
+p.mesh.instanceMatrix.needsUpdate=true;
+}
+
+scene.add(g);
+quedas.push({tree,g,t:0,direcao,espera:0,caiu:false});
+
+// mostra o toco
+dummy.position.set(tree.x,tree.y,tree.z);
+dummy.rotation.set(0,tree.rot,0);
+dummy.scale.setScalar(tree.escala*(tree.tipo==="castanheira"?1.6:1));
+dummy.updateMatrix();
+tocos.setMatrixAt(tree.indice,dummy.matrix);
+tocos.instanceMatrix.needsUpdate=true;
+
+}
+
+function animarArvores(){
+
+// árvore sendo cortada treme
+for(const t of trees){
+if(t.tremer>0&&!t.cortada){
+t.tremer--;
+posicionarArvore(t,Math.sin(t.tremer*1.5)*0.04*(t.tremer/10));
+}
+}
+
+for(let i=quedas.length-1;i>=0;i--){
+
+const q=quedas[i];
+
+if(q.t<1){
+
+q.t+=0.008+q.t*0.05;
+const ang=Math.min(1,q.t)*Math.PI/2*0.96;
+q.g.rotation.set(0,0,0);
+q.g.rotateY(q.direcao);
+q.g.rotateX(ang);
+
+}else if(!q.caiu){
+
+// bateu no chão: barulho e folhas voando
+q.caiu=true;
+somQueda();
+tremerCamera=12;
+const alcance=5*q.tree.escala;
+soltarParticulas(
+q.tree.x+Math.sin(q.direcao)*alcance,
+q.tree.y+1,
+q.tree.z+Math.cos(q.direcao)*alcance,
+0x3e8e41,25,0.2
+);
+
+}else{
+
+q.espera++;
+
+// depois de um tempo o tronco some (foi levado como tora)
+if(q.espera>150){
+q.g.scale.multiplyScalar(0.93);
+if(q.espera>190){
+scene.remove(q.g);
+q.g.traverse(o=>{ if(o.material) o.material.dispose(); });
+quedas.splice(i,1);
+}
+}
+
+}
+
+}
+
+}
+
+/* =========================================================
+   CONSTRUÇÕES: vila, serrarias, ponte e postes
+   ========================================================= */
+
+const matJanela=new THREE.MeshLambertMaterial({color:0x2c3e50,emissive:0x000000});
+const matMadeira=mat(0x8d6e4b);
+const matMadeiraEscura=mat(0x5d4037);
+const matTora=mat(0xa1784e);
+
+function criarCasa(x,z,l,p,a,corParede,corTelhado){
+
+const g=new THREE.Group();
+
+const parede=caixa(l,a,p,mat(corParede));
+parede.position.y=a/2;
+g.add(parede);
+
+// telhado de duas águas
+const matTelhado=mat(corTelhado);
+const meia=p/2+0.4;
+const inclinacao=0.5;
+const altTelhado=Math.tan(inclinacao)*meia;
+
+for(const lado of[-1,1]){
+const placa=caixa(l+0.8,0.2,meia/Math.cos(inclinacao)+0.1,matTelhado);
+placa.position.set(0,a+altTelhado/2,lado*meia/2);
+placa.rotation.x=lado*inclinacao;
+g.add(placa);
+}
+
+// triângulos das pontas do telhado
+const forma=new THREE.Shape();
+forma.moveTo(-p/2,0);
+forma.lineTo(p/2,0);
+forma.lineTo(0,altTelhado*0.95);
+const triGeo=new THREE.ShapeGeometry(forma);
+for(const lado of[-1,1]){
+const tri=new THREE.Mesh(triGeo,mat(corParede,{side:THREE.DoubleSide}));
+tri.rotation.y=Math.PI/2;
+tri.position.set(lado*l/2,a,0);
+g.add(tri);
+}
+
+// porta e janelas (as janelas acendem à noite)
+const porta=caixa(1.2,2.1,0.1,matMadeiraEscura);
+porta.position.set(0,1.05,p/2+0.05);
+g.add(porta);
+
+for(const lado of[-1,1]){
+const janela=caixa(1,0.9,0.1,matJanela);
+janela.position.set(lado*l*0.3,a*0.6,p/2+0.05);
+g.add(janela);
+}
+
+// a frente da casa fica virada para o centro da vila
+g.position.set(x,alturaChao(x,z),z);
+g.rotation.y=Math.atan2(VILA.x-x,VILA.z-z);
+scene.add(g);
+
+obstaculos.push({x,z,r:Math.max(l,p)*0.6});
+
+return g;
+
+}
+
+function pilhaToras(x,z,quantidade,rot){
+const g=new THREE.Group();
+for(let i=0;i<quantidade;i++){
+const camada=Math.floor(i/4);
+const tora=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.35,4,8),matTora);
+tora.rotation.z=Math.PI/2;
+tora.position.set(0,0.35+camada*0.62,(i%4-1.5)*0.72+(camada%2)*0.36);
+tora.castShadow=true;
+g.add(tora);
+}
+g.position.set(x,alturaChao(x,z),z);
+g.rotation.y=rot||0;
+scene.add(g);
+obstaculos.push({x,z,r:2});
+}
+
+// galpão aberto com serra (serraria)
+const serras=[];
+
+function criarSerraria(x,z,rot){
+
+const g=new THREE.Group();
+
+for(const[px,pz]of[[-4,-3],[4,-3],[-4,3],[4,3]]){
+const poste=caixa(0.4,4,0.4,matMadeiraEscura);
+poste.position.set(px,2,pz);
+g.add(poste);
+}
+
+const teto=caixa(9.5,0.25,7.5,mat(0x7b3f2a));
+teto.position.y=4.1;
+teto.rotation.z=0.08;
+g.add(teto);
+
+const mesa=caixa(5,1,1.4,matMadeira);
+mesa.position.set(0,0.5,0);
+g.add(mesa);
+
+const serra=new THREE.Mesh(
+new THREE.CylinderGeometry(0.9,0.9,0.06,24),
+new THREE.MeshPhongMaterial({color:0xcfd8dc,shininess:100})
+);
+serra.rotation.x=Math.PI/2;
+serra.position.set(0,1.2,0);
+g.add(serra);
+serras.push(serra);
+
+g.position.set(x,alturaChao(x,z),z);
+g.rotation.y=rot||0;
+scene.add(g);
+
+obstaculos.push({x,z,r:3});
+
+}
+
+// caminhão de toras (enfeite)
+function criarCaminhaoToras(x,z,rot){
+
+const g=new THREE.Group();
+const vermelho=mat(0x8b2b1f);
+const cinza=mat(0x37474f);
+const vidro=mat(0x90caf9);
+const preto=mat(0x111111);
+
+const cabine=caixa(2.2,1.8,2,vermelho);
+cabine.position.set(2.2,1.5,0);
+const janela=caixa(0.1,0.8,1.7,vidro);
+janela.position.set(3.31,1.9,0);
+const carroceria=caixa(4,0.4,2.2,cinza);
+carroceria.position.set(-0.8,0.9,0);
+g.add(cabine,janela,carroceria);
+
+for(let i=0;i<5;i++){
+const tora=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,3.6,8),matTora);
+tora.rotation.z=Math.PI/2;
+tora.position.set(-0.8,1.4+Math.floor(i/3)*0.55,(i%3-1)*0.62+(i>=3?0.31:0));
+tora.castShadow=true;
+g.add(tora);
+}
+
+for(const[rx,rz]of[[2.2,1.1],[2.2,-1.1],[-1.8,1.1],[-1.8,-1.1]]){
+const roda=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,0.4,12),preto);
+roda.rotation.x=Math.PI/2;
+roda.position.set(rx,0.5,rz);
+g.add(roda);
+}
+
+g.position.set(x,alturaChao(x,z),z);
+g.rotation.y=rot;
+scene.add(g);
+obstaculos.push({x,z,r:2.6});
+
+}
+
+// postes de luz (acendem à noite)
+const luzesPostes=[];
+const matLampada=new THREE.MeshLambertMaterial({color:0xfff2c0,emissive:0x000000});
+
+function criarPoste(x,z,comLuz){
+const g=new THREE.Group();
+const haste=caixa(0.2,4,0.2,mat(0x37474f));
+haste.position.y=2;
+const lampada=new THREE.Mesh(new THREE.SphereGeometry(0.3,10,8),matLampada);
+lampada.position.y=4.1;
+g.add(haste,lampada);
+if(comLuz){
+const luz=new THREE.PointLight(0xffd59a,0,28,2);
+luz.position.y=4;
+g.add(luz);
+luzesPostes.push(luz);
+}
+g.position.set(x,alturaChao(x,z),z);
+scene.add(g);
+obstaculos.push({x,z,r:0.3});
+}
+
+// ---------- montando a vila ----------
+
+const V=VILA;
+
+const LUGARES={
+ze:{x:V.x-11,z:V.z-8},
+serraria:{x:V.x+13,z:V.z-7},
+ferreiro:{x:V.x-11,z:V.z+11},
+rosa:{x:V.x+11,z:V.z+11},
+norte:{x:NORTE.x+6,z:NORTE.z+12},
+leste:FLORESTA_LESTE,
+carro:{x:V.x,z:V.z+27}
+};
+
+criarCasa(V.x-18,V.z-15,7,6,3.2,0xe8d8b0,0x8e3b2a);   // escritório do Seu Zé
+criarSerraria(V.x+20,V.z-15,0.6);
+pilhaToras(V.x+26,V.z-6,10,0.3);
+criarCaminhaoToras(V.x+22,V.z-26,1.2);
+criarCasa(V.x-19,V.z+17,6,6,3,0x9e9e9e,0x37474f);     // ferreiro
+criarCasa(V.x+19,V.z+17,7,6,3,0xf8bbd0,0x6a1b9a);     // loja da Dona Rosa
+criarCasa(V.x-36,V.z-3,6,5,3,0xfff3e0,0xbf5b2c);
+criarCasa(V.x+30,V.z-34,6,5,3,0xd7ccc8,0x5d4037);
+criarCasa(V.x-30,V.z-30,5,5,3,0xe3f2fd,0x1565c0);
+criarCasa(V.x+36,V.z+30,6,5,3,0xfffde7,0x2e7d32);
+
+// forja do ferreiro (fogo que brilha)
+const fogoMat=new THREE.MeshLambertMaterial({color:0xff7043,emissive:0xff5722});
+const forja=caixa(1.6,1,1.6,mat(0x616161));
+forja.position.set(V.x-14,alturaChao(V.x-14,V.z+12)+0.5,V.z+12);
+const fogo=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.3,1.1),fogoMat);
+fogo.position.set(forja.position.x,forja.position.y+0.6,forja.position.z);
+const bigorna=caixa(0.9,0.6,0.5,mat(0x263238));
+bigorna.position.set(V.x-9,alturaChao(V.x-9,V.z+14)+0.5,V.z+14);
+scene.add(forja,fogo,bigorna);
+obstaculos.push({x:V.x-14,z:V.z+12,r:1});
+
+// toldo listrado da loja
+for(let i=0;i<6;i++){
+const listra=caixa(0.8,0.1,2.2,mat(i%2?0xffffff:0xe53935));
+listra.position.set(V.x+11.5+i*0.8-2,alturaChao(V.x+12,V.z+13)+2.9,V.z+13.5);
+listra.rotation.x=0.25;
+scene.add(listra);
+}
+
+// vaga de estacionamento da caminhonete
+const vaga=caixa(5,0.1,7,mat(0x9e9e9e));
+vaga.position.set(LUGARES.carro.x,alturaChao(LUGARES.carro.x,LUGARES.carro.z)+0.05,LUGARES.carro.z);
+scene.add(vaga);
+
+criarPoste(V.x-6,V.z-5,true);
+criarPoste(V.x+6,V.z-5,true);
+criarPoste(V.x-6,V.z+6,true);
+criarPoste(V.x+6,V.z+6,true);
+criarPoste(V.x+20,V.z,false);
+criarPoste(V.x-8,V.z+24,false);
+
+// placas com nomes dos lugares
+function placa(texto,x,z,altura){
+const r=criarRotulo(texto,"#fff","rgba(60,35,20,.85)",7);
+r.position.set(x,alturaChao(x,z)+altura,z);
+scene.add(r);
+}
+
+placa("🪵 Serraria",V.x+20,V.z-15,6);
+placa("🔨 Ferreiro",V.x-19,V.z+17,6.5);
+placa("👕 Loja da Rosa",V.x+19,V.z+17,6.5);
+placa("🏚️ Seu Zé",V.x-18,V.z-15,6.5);
+
+// ---------- Serraria do Norte ----------
+
+criarSerraria(NORTE.x-4,NORTE.z-4,0.2);
+pilhaToras(NORTE.x-14,NORTE.z+2,12,1.2);
+pilhaToras(NORTE.x+4,NORTE.z-14,8,0.1);
+criarCaminhaoToras(NORTE.x+14,NORTE.z-4,2.2);
+criarPoste(NORTE.x+10,NORTE.z+8,true);
+placa("🪵 Serraria do Norte (paga mais!)",NORTE.x-4,NORTE.z-4,7);
+
+// ---------- ponte sobre o rio ----------
+
+const ponte=new THREE.Group();
+const deck=caixa(PONTE.comprimento,0.4,5,matMadeira);
+ponte.add(deck);
+for(const lado of[-1,1]){
+const corrimao=caixa(PONTE.comprimento,0.15,0.15,matMadeiraEscura);
+corrimao.position.set(0,1.1,lado*2.4);
+ponte.add(corrimao);
+for(let i=0;i<=10;i++){
+const pilar=caixa(0.2,1.1,0.2,matMadeiraEscura);
+pilar.position.set(-PONTE.comprimento/2+i*PONTE.comprimento/10,0.55,lado*2.4);
+ponte.add(pilar);
+}
+}
+for(const px of[-8,0,8]){
+const base=caixa(0.6,8,0.6,matMadeiraEscura);
+base.position.set(px,-4,0);
+ponte.add(base);
+}
+ponte.position.set(PONTE.x,PONTE_Y-0.2,PONTE.z);
+scene.add(ponte);
+
+/* =========================================================
+   PESSOAS: o lenhador e os personagens (NPCs)
+   ========================================================= */
+
+function criarPessoa(c){
+
+const m={
+pele:mat(c.pele||0xf1c27d),
+camisa:mat(c.camisa),
+listra:mat(c.listra),
+calca:mat(c.calca),
+botas:mat(c.botas||0x3e2723),
+chapeu:mat(c.chapeu),
+barba:mat(c.barba||0x5d3a1a),
+olho:mat(0x111111)
+};
+
+const grupo=new THREE.Group();
+
+// pernas
+const pernaE=new THREE.Group();
+const pernaD=new THREE.Group();
+[pernaE,pernaD].forEach((perna,i)=>{
+const calca=caixa(0.32,0.8,0.34,m.calca);
+calca.position.y=-0.4;
+const bota=caixa(0.36,0.25,0.5,m.botas);
+bota.position.set(0,-0.85,0.07);
+perna.add(calca,bota);
+perna.position.set(i===0?-0.2:0.2,0.95,0);
+grupo.add(perna);
+});
+
+// corpo
+const corpo=caixa(0.8,0.9,0.45,m.camisa);
+corpo.position.y=1.42;
+grupo.add(corpo);
+
+for(const y of[1.25,1.55]){
+const listra=caixa(0.82,0.08,0.47,m.listra);
+listra.position.y=y;
+grupo.add(listra);
+}
+
+for(const x of[-0.22,0.22]){
+const susp=caixa(0.08,0.92,0.47,m.botas);
+susp.position.set(x,1.42,0);
+grupo.add(susp);
+}
+
+// cabeça
+const cabeca=new THREE.Group();
+cabeca.position.y=2.12;
+const rosto=caixa(0.5,0.5,0.5,m.pele);
+const barba=caixa(0.52,0.25,0.15,m.barba);
+barba.position.set(0,-0.15,0.22);
+barba.visible=c.barba!==null;
+const olhoE=caixa(0.07,0.07,0.02,m.olho);
+olhoE.position.set(-0.11,0.07,0.26);
+const olhoD=olhoE.clone();
+olhoD.position.x=0.11;
+const bone=caixa(0.56,0.18,0.56,m.chapeu);
+bone.position.y=0.3;
+const aba=caixa(0.56,0.05,0.3,m.chapeu);
+aba.position.set(0,0.23,0.38);
+cabeca.add(rosto,barba,olhoE,olhoD,bone,aba);
+grupo.add(cabeca);
+
+// braços
+const bracoE=new THREE.Group();
+const bracoD=new THREE.Group();
+[bracoE,bracoD].forEach((braco,i)=>{
+const manga=caixa(0.24,0.7,0.26,m.camisa);
+manga.position.y=-0.35;
+const mao=caixa(0.22,0.2,0.22,m.pele);
+mao.position.y=-0.8;
+braco.add(manga,mao);
+braco.position.set(i===0?-0.53:0.53,1.82,0);
+grupo.add(braco);
+});
+
+scene.add(grupo);
+
+return{grupo,pernaE,pernaD,bracoE,bracoD,cabeca,mats:m};
+
+}
+
+// balança braços e pernas ao andar
+function animarPessoa(p,andando,fase){
+if(andando){
+const passo=Math.sin(fase)*0.7;
+p.pernaE.rotation.x=passo;
+p.pernaD.rotation.x=-passo;
+p.bracoE.rotation.x=-passo;
+p.bracoD.rotation.x=passo;
+}else{
+p.pernaE.rotation.x*=0.8;
+p.pernaD.rotation.x*=0.8;
+p.bracoE.rotation.x*=0.8;
+p.bracoD.rotation.x*=0.8;
+}
+}
+
+// ---------- o lenhador (jogador) ----------
+
+const lenhador=criarPessoa(SKINS[0]);
+
+function vestir(indice){
+const s=SKINS[indice];
+lenhador.mats.camisa.color.setHex(s.camisa);
+lenhador.mats.listra.color.setHex(s.listra);
+lenhador.mats.calca.color.setHex(s.calca);
+lenhador.mats.chapeu.color.setHex(s.chapeu);
+}
+
+// machado (ou motosserra) na mão direita
+const ferramenta=new THREE.Group();
+lenhador.bracoD.add(ferramenta);
+
+function montarFerramenta(){
+
+while(ferramenta.children.length) ferramenta.remove(ferramenta.children[0]);
+
+const nivel=NIVEIS_MACHADO[nivelMachado-1];
+
+if(nivel.nome==="Motosserra"){
+
+const motor=caixa(0.3,0.35,0.55,mat(nivel.cor));
+const lamina=caixa(0.06,0.12,1.1,mat(0x90a4ae));
+lamina.position.z=0.75;
+const corrente=caixa(0.08,0.16,1.12,mat(0x37474f));
+corrente.position.z=0.75;
+corrente.scale.set(0.5,1,1);
+ferramenta.add(motor,lamina,corrente);
+ferramenta.position.set(0,-0.8,0.2);
+ferramenta.rotation.set(0,0,0);
+
+}else{
+
+const cabo=caixa(0.08,1.1,0.08,mat(0x8d6e63));
+cabo.position.y=0.35;
+const lamina=new THREE.Mesh(
+new THREE.BoxGeometry(0.05,0.38,0.42),
+new THREE.MeshPhongMaterial({color:nivel.cor,shininess:120})
+);
+lamina.position.set(0,0.8,0.18);
+lamina.castShadow=true;
+ferramenta.add(cabo,lamina);
+ferramenta.position.set(0,-0.85,0.1);
+ferramenta.rotation.set(Math.PI/2,0,0);
+
+}
+
+}
+
+const player={
+x:VILA.x+2,
+z:VILA.z+4,
+direcao:Math.PI
+};
+
+// ---------- personagens da vila ----------
+
+const npcs=[];
+
+function criarNPC(id,nome,cores,lugar,falar){
+const p=criarPessoa(cores);
+p.grupo.position.set(lugar.x,alturaChao(lugar.x,lugar.z),lugar.z);
+p.grupo.rotation.y=Math.atan2(VILA.x-lugar.x,VILA.z-lugar.z);
+const rotulo=criarRotulo(nome,"#ffe082","rgba(0,0,0,.6)",4.4);
+rotulo.position.y=3.1;
+p.grupo.add(rotulo);
+obstaculos.push({x:lugar.x,z:lugar.z,r:0.5});
+const npc={id,nome,pessoa:p,x:lugar.x,z:lugar.z,falar};
+npcs.push(npc);
+return npc;
+}
+
+const ze=criarNPC("ze","Seu Zé",
+{camisa:0xffffff,listra:0xe0e0e0,calca:0x3e2723,chapeu:0xd7b56d,barba:0x9e9e9e,pele:0xe0ac69},
+LUGARES.ze,()=>falarZe());
+
+criarNPC("ferreiro","Ferreiro Tião",
+{camisa:0x5d4037,listra:0x3e2723,calca:0x263238,chapeu:0x212121,barba:0x212121,pele:0x8d5524},
+LUGARES.ferreiro,()=>falarFerreiro());
+
+criarNPC("rosa","Dona Rosa",
+{camisa:0xec407a,listra:0xad1457,calca:0x6a1b9a,chapeu:0xf48fb1,barba:null,pele:0xc68642},
+LUGARES.rosa,()=>falarRosa());
+
+// ponto de exclamação em cima do Seu Zé quando há algo para conversar
+const marcadorZe=criarRotulo("❗","#ffd54f",null,2.4);
+marcadorZe.position.y=3.9;
+ze.pessoa.grupo.add(marcadorZe);
+
+// ---------- fiscais ambientais (patrulham a floresta) ----------
+
+const fiscais=[];
+
+function criarFiscal(rota){
+const p=criarPessoa({camisa:0x33691e,listra:0x1b5e20,calca:0x3e2723,chapeu:0x1b5e20,barba:null,pele:0xd1a37a});
+const rotulo=criarRotulo("👁️ Fiscal","#ffffff","rgba(27,94,32,.85)",3);
+rotulo.position.y=3.1;
+p.grupo.add(rotulo);
+const f={pessoa:p,rota,alvo:1,x:rota[0][0],z:rota[0][1],rotulo,viuAgora:false};
+fiscais.push(f);
+}
+
+criarFiscal([[MUNDO*0.17,MUNDO*0.3],[MUNDO*0.38,MUNDO*0.28],[MUNDO*0.42,MUNDO*0.62],[MUNDO*0.15,MUNDO*0.55]]);
+criarFiscal([[MUNDO*0.8,MUNDO*0.2],[MUNDO*0.95,MUNDO*0.33],[MUNDO*0.93,MUNDO*0.7],[MUNDO*0.81,MUNDO*0.66]]);
+
+/* =========================================================
+   CAMINHONETE
+   ========================================================= */
+
+const carro={
+x:LUGARES.carro.x,
+z:LUGARES.carro.z,
+ang:Math.PI,
+vel:0,
+liberado:false,
+dentro:false
+};
+
+const modeloCarro=new THREE.Group();
+modeloCarro.rotation.order="YXZ";
+
+const corpoCarro=new THREE.Group();
+corpoCarro.position.y=0.55;
+modeloCarro.add(corpoCarro);
+
+const pintura=new THREE.MeshPhongMaterial({color:0x1565c0,shininess:80});
+const base=caixa(2.3,0.7,4.6,pintura);
+base.position.y=0.45;
+const cabineCarro=caixa(2.1,0.9,1.9,pintura);
+cabineCarro.position.set(0,1.25,0.4);
+const vidroFrente=caixa(1.9,0.65,0.08,mat(0x90caf9));
+vidroFrente.position.set(0,1.3,1.36);
+const cacamba=caixa(2.2,0.15,1.9,mat(0x263238));
+cacamba.position.set(0,0.85,-1.25);
+corpoCarro.add(base,cabineCarro,vidroFrente,cacamba);
+
+const matFarol=new THREE.MeshLambertMaterial({color:0xfffde7,emissive:0x333322});
+for(const x of[-0.75,0.75]){
+const farol=caixa(0.4,0.22,0.08,matFarol);
+farol.position.set(x,0.55,2.32);
+const lanterna=caixa(0.3,0.2,0.08,mat(0xd32f2f,{emissive:0x400000}));
+lanterna.position.set(x,0.55,-2.32);
+corpoCarro.add(farol,lanterna);
+}
+
+// toras na caçamba (mostra quanta madeira você carrega)
+const torasCarro=[];
+for(let i=0;i<6;i++){
+const tora=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,1.8,8),matTora);
+tora.rotation.x=Math.PI/2;
+tora.position.set((i%3-1)*0.5,1.15+Math.floor(i/3)*0.4,-1.25);
+tora.visible=false;
+tora.castShadow=true;
+corpoCarro.add(tora);
+torasCarro.push(tora);
+}
+
+const rodas=[];
+for(const[rx,rz]of[[1.1,1.4],[-1.1,1.4],[1.1,-1.4],[-1.1,-1.4]]){
+const roda=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,0.35,14),mat(0x111111));
+roda.rotation.z=Math.PI/2;
+roda.position.set(rx,0.5,rz);
+roda.castShadow=true;
+const eixo=new THREE.Group();
+eixo.position.copy(roda.position);
+roda.position.set(0,0,0);
+eixo.add(roda);
+modeloCarro.add(eixo);
+rodas.push(eixo);
+}
+
+scene.add(modeloCarro);
+
+const cadeado=criarRotulo("🔒 Caminhonete do Seu Zé","#fff","rgba(0,0,0,.6)",4.6);
+cadeado.position.y=3.4;
+modeloCarro.add(cadeado);
+
+/* =========================================================
+   EFEITOS: partículas, vaga-lumes, chuva, pássaros e marcador
+   ========================================================= */
+
+const particulas=[];
+const geoParticula=new THREE.BoxGeometry(0.16,0.16,0.16);
+const matsParticula={};
+
+function soltarParticulas(x,y,z,corHex,quantidade,forca){
+
+for(let i=0;i<quantidade;i++){
+
+let p=particulas.find(p=>p.vida<=0);
+
+if(!p){
+if(particulas.length>200) return;
+p={mesh:new THREE.Mesh(geoParticula),vel:new THREE.Vector3(),vida:0};
+scene.add(p.mesh);
+particulas.push(p);
+}
+
+if(!matsParticula[corHex]) matsParticula[corHex]=mat(corHex);
+p.mesh.material=matsParticula[corHex];
+p.mesh.visible=true;
+p.mesh.position.set(x,y,z);
+p.vel.set((Math.random()-0.5)*forca,Math.random()*forca*1.2,(Math.random()-0.5)*forca);
+p.vida=40+Math.random()*30;
+
+}
+
+}
+
+function atualizarParticulas(){
+for(const p of particulas){
+if(p.vida<=0) continue;
+p.vida--;
+p.vel.y-=0.008;
+p.mesh.position.add(p.vel);
+p.mesh.rotation.x+=0.2;
+p.mesh.rotation.y+=0.15;
+const chaoAqui=alturaChao(p.mesh.position.x,p.mesh.position.z)+0.08;
+if(p.mesh.position.y<chaoAqui){
+p.mesh.position.y=chaoAqui;
+p.vel.set(p.vel.x*0.6,0,p.vel.z*0.6);
+}
+p.mesh.scale.setScalar(Math.min(1,p.vida/20));
+if(p.vida<=0) p.mesh.visible=false;
+}
+}
+
+// vaga-lumes (aparecem à noite perto do lenhador)
+const NUM_VAGALUMES=120;
+const vagalumesPos=new Float32Array(NUM_VAGALUMES*3);
+const vagalumesBase=[];
+for(let i=0;i<NUM_VAGALUMES;i++){
+vagalumesBase.push({
+x:(Math.random()-0.5)*60,
+y:0.5+Math.random()*3,
+z:(Math.random()-0.5)*60,
+fase:Math.random()*10
+});
+}
+const vagalumesGeo=new THREE.BufferGeometry();
+vagalumesGeo.setAttribute("position",new THREE.BufferAttribute(vagalumesPos,3));
+// bolinha que brilha (desenhada num canvas)
+const brilhoCanvas=document.createElement("canvas");
+brilhoCanvas.width=64;
+brilhoCanvas.height=64;
+const brilhoCtx=brilhoCanvas.getContext("2d");
+const degrade=brilhoCtx.createRadialGradient(32,32,0,32,32,32);
+degrade.addColorStop(0,"rgba(255,255,255,1)");
+degrade.addColorStop(0.3,"rgba(255,255,255,.6)");
+degrade.addColorStop(1,"rgba(255,255,255,0)");
+brilhoCtx.fillStyle=degrade;
+brilhoCtx.fillRect(0,0,64,64);
+const texturaBrilho=new THREE.CanvasTexture(brilhoCanvas);
+
+const vagalumes=new THREE.Points(vagalumesGeo,new THREE.PointsMaterial({
+color:0xd4ff6b,size:0.5,map:texturaBrilho,transparent:true,opacity:0,
+blending:THREE.AdditiveBlending,depthWrite:false
+}));
+scene.add(vagalumes);
+
+// chuva
+const NUM_GOTAS=2500;
+const gotasPos=new Float32Array(NUM_GOTAS*3);
+for(let i=0;i<NUM_GOTAS;i++){
+gotasPos[i*3]=(Math.random()-0.5)*80;
+gotasPos[i*3+1]=Math.random()*35;
+gotasPos[i*3+2]=(Math.random()-0.5)*80;
+}
+const gotasGeo=new THREE.BufferGeometry();
+gotasGeo.setAttribute("position",new THREE.BufferAttribute(gotasPos,3));
+const chuva=new THREE.Points(gotasGeo,new THREE.PointsMaterial({
+color:0xaaccff,size:0.12,map:texturaBrilho,transparent:true,opacity:0.8,depthWrite:false
+}));
+chuva.visible=false;
+scene.add(chuva);
+
+// pássaros voando em círculos
+const passaros=[];
+const matPassaro=mat(0x263238);
+for(let i=0;i<10;i++){
+const g=new THREE.Group();
+const corpoP=new THREE.Mesh(new THREE.BoxGeometry(0.25,0.2,0.6),matPassaro);
+const asaE=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.05,0.35),matPassaro);
+asaE.position.x=-0.5;
+const asaD=asaE.clone();
+asaD.position.x=0.5;
+g.add(corpoP,asaE,asaD);
+scene.add(g);
+passaros.push({
+g,asaE,asaD,
+cx:Math.random()*MUNDO,cz:Math.random()*MUNDO,
+raio:20+Math.random()*30,altura:28+Math.random()*12,
+fase:Math.random()*10,vel:0.004+Math.random()*0.004
+});
+}
+
+// marcador da missão (um feixe de luz amarela que dá para ver de longe)
+const farol=new THREE.Mesh(
+new THREE.CylinderGeometry(0.6,0.6,80,12,1,true),
+new THREE.MeshBasicMaterial({
+color:0xffd54f,transparent:true,opacity:0.3,depthWrite:false,side:THREE.DoubleSide,fog:false
+})
+);
+scene.add(farol);
+
+/* =========================================================
+   SOM: música de fundo e efeitos (tudo gerado pelo navegador)
+   ========================================================= */
+
+const audio={ctx:null,ligado:true};
+
+function iniciarAudio(){
+
+if(audio.ctx) return;
+
+const AC=window.AudioContext||window.webkitAudioContext;
+if(!AC) return;
+
+const ctx=new AC();
+audio.ctx=ctx;
+
+audio.mestre=ctx.createGain();
+audio.mestre.gain.value=0.8;
+audio.mestre.connect(ctx.destination);
+
+audio.musica=ctx.createGain();
+audio.musica.gain.value=0.3;
+audio.musica.connect(audio.mestre);
+
+audio.efeitos=ctx.createGain();
+audio.efeitos.gain.value=0.7;
+audio.efeitos.connect(audio.mestre);
+
+// ruído (chiado) usado em golpes, chuva e percussão
+const buffer=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate);
+const dados=buffer.getChannelData(0);
+for(let i=0;i<dados.length;i++) dados[i]=Math.random()*2-1;
+audio.ruido=buffer;
+
+// barulho da chuva (fica tocando, com volume zero quando não chove)
+const chuvaFonte=ctx.createBufferSource();
+chuvaFonte.buffer=buffer;
+chuvaFonte.loop=true;
+const chuvaFiltro=ctx.createBiquadFilter();
+chuvaFiltro.type="lowpass";
+chuvaFiltro.frequency.value=1800;
+audio.chuvaVolume=ctx.createGain();
+audio.chuvaVolume.gain.value=0;
+chuvaFonte.connect(chuvaFiltro);
+chuvaFiltro.connect(audio.chuvaVolume);
+audio.chuvaVolume.connect(audio.efeitos);
+chuvaFonte.start();
+
+// motor da caminhonete
+audio.motor=ctx.createOscillator();
+audio.motor.type="sawtooth";
+audio.motor.frequency.value=45;
+const motorFiltro=ctx.createBiquadFilter();
+motorFiltro.type="lowpass";
+motorFiltro.frequency.value=500;
+audio.motorVolume=ctx.createGain();
+audio.motorVolume.gain.value=0;
+audio.motor.connect(motorFiltro);
+motorFiltro.connect(audio.motorVolume);
+audio.motorVolume.connect(audio.efeitos);
+audio.motor.start();
+
+audio.proxima=ctx.currentTime+0.1;
+audio.passo=0;
+setInterval(agendarMusica,50);
+
+}
+
+function nota(midi){
+return 440*Math.pow(2,(midi-69)/12);
+}
+
+// toca um som simples (oscilador) com volume que sobe e desce
+function tom(freq,inicio,duracao,tipo,volume,destino,ataque,freqFinal){
+const ctx=audio.ctx;
+const o=ctx.createOscillator();
+const g=ctx.createGain();
+o.type=tipo;
+o.frequency.setValueAtTime(freq,inicio);
+if(freqFinal) o.frequency.exponentialRampToValueAtTime(freqFinal,inicio+duracao);
+g.gain.setValueAtTime(0.0001,inicio);
+g.gain.exponentialRampToValueAtTime(volume,inicio+(ataque||0.01));
+g.gain.exponentialRampToValueAtTime(0.0001,inicio+duracao);
+o.connect(g);
+g.connect(destino||audio.efeitos);
+o.start(inicio);
+o.stop(inicio+duracao+0.05);
+}
+
+// toca um chiado filtrado
+function chiado(inicio,duracao,volume,tipoFiltro,freq,destino,freqFinal){
+const ctx=audio.ctx;
+const s=ctx.createBufferSource();
+s.buffer=audio.ruido;
+const f=ctx.createBiquadFilter();
+f.type=tipoFiltro;
+f.frequency.setValueAtTime(freq,inicio);
+if(freqFinal) f.frequency.exponentialRampToValueAtTime(freqFinal,inicio+duracao);
+const g=ctx.createGain();
+g.gain.setValueAtTime(volume,inicio);
+g.gain.exponentialRampToValueAtTime(0.0001,inicio+duracao);
+s.connect(f);
+f.connect(g);
+g.connect(destino||audio.efeitos);
+s.start(inicio);
+s.stop(inicio+duracao+0.05);
+}
+
+// ---------- música ----------
+// calma: tocada normalmente.  tensa: quando a polícia está chegando.
+
+const MUSICA={
+calma:{bpm:84,acordes:[[57,60,64],[53,57,60],[48,55,64],[55,59,62]],baixo:[45,41,48,43]},
+tensa:{bpm:124,acordes:[[57,60,64],[57,60,64],[53,57,60],[52,56,59]],baixo:[45,45,41,40]}
+};
+
+// melodia (números = notas; -1 = silêncio)
+const MELODIA=[
+76,-1,74,-1,72,-1,69,-1,
+72,-1,-1,74,76,-1,-1,-1,
+79,-1,76,-1,74,-1,72,74,
+76,-1,-1,-1,69,-1,72,-1
+];
+
+function agendarMusica(){
+
+const ctx=audio.ctx;
+if(audio.proxima<ctx.currentTime) audio.proxima=ctx.currentTime+0.05;
+
+while(audio.proxima<ctx.currentTime+0.2){
+const modo=(suspeita>=70&&!fim)?MUSICA.tensa:MUSICA.calma;
+tocarPasso(audio.passo,audio.proxima,modo);
+audio.proxima+=60/modo.bpm/2;
+audio.passo++;
+}
+
+}
+
+function tocarPasso(p,t,modo){
+
+const dest=audio.musica;
+const dur=60/modo.bpm/2;
+const passo=p%8;
+const compasso=Math.floor(p/8)%4;
+
+// acorde no começo de cada compasso
+if(passo===0){
+for(const n of modo.acordes[compasso]) tom(nota(n),t,dur*8,"triangle",0.045,dest,0.4);
+}
+
+if(modo===MUSICA.tensa){
+
+tom(nota(modo.baixo[compasso]),t,dur*0.9,"square",0.03,dest);
+if(passo%2===0) tom(120,t,0.25,"sine",0.3,dest,0.005,40);
+if(passo===2||passo===6) chiado(t,0.15,0.09,"highpass",1500,dest);
+
+}else{
+
+if(passo===0||passo===4) tom(nota(modo.baixo[compasso]),t,dur*3,"sine",0.13,dest,0.02);
+
+const n=MELODIA[p%32];
+const noite=fatorDia<0.3;
+if(n>0&&(!noite||Math.random()<0.5)) tom(nota(n),t,dur*2.5,"sine",noite?0.05:0.08,dest);
+
+if(passo%2===1) chiado(t,0.05,0.02,"highpass",6000,dest);
+
+}
+
+}
+
+function alternarMusica(){
+if(!audio.ctx) return;
+audio.ligado=!audio.ligado;
+audio.musica.gain.value=audio.ligado?0.3:0;
+avisar(audio.ligado?"🎵 Música ligada":"🔇 Música desligada");
+}
+
+// ---------- efeitos sonoros ----------
+
+function agora(){return audio.ctx.currentTime;}
+
+function somGolpe(){
+if(!audio.ctx) return;
+chiado(agora(),0.07,0.5,"bandpass",1000);
+tom(160,agora(),0.12,"sine",0.4,null,0.005,60);
+}
+
+function somMotosserra(){
+if(!audio.ctx) return;
+tom(110,agora(),0.4,"sawtooth",0.1,null,0.01,150);
+chiado(agora(),0.35,0.15,"bandpass",3000);
+}
+
+function somQueda(){
+if(!audio.ctx) return;
+chiado(agora(),0.9,0.35,"lowpass",1500,null,200);
+tom(70,agora(),0.6,"sine",0.5,null,0.01,35);
+}
+
+function somMoeda(){
+if(!audio.ctx) return;
+tom(988,agora(),0.1,"square",0.07);
+tom(1319,agora()+0.08,0.3,"square",0.07);
+}
+
+function somNivel(){
+if(!audio.ctx) return;
+[523,659,784,1047].forEach((f,i)=>tom(f,agora()+i*0.09,0.35,"triangle",0.15));
+}
+
+function somErro(){
+if(!audio.ctx) return;
+tom(220,agora(),0.2,"square",0.06,null,0.01,140);
+}
+
+function somBatida(){
+if(!audio.ctx) return;
+chiado(agora(),0.2,0.4,"lowpass",600);
+tom(90,agora(),0.2,"sine",0.4,null,0.005,40);
+}
+
+function somPassaro(){
+if(!audio.ctx) return;
+tom(2400,agora(),0.1,"sine",0.025,null,0.01,3200);
+tom(2600,agora()+0.15,0.1,"sine",0.025,null,0.01,3400);
+}
+
+function atualizarSom(){
+
+if(!audio.ctx) return;
+
+const t=audio.ctx.currentTime;
+audio.motorVolume.gain.setTargetAtTime(carro.dentro?0.05:0,t,0.1);
+audio.motor.frequency.setTargetAtTime(40+Math.abs(carro.vel)*120,t,0.1);
+audio.chuvaVolume.gain.setTargetAtTime(clima==="Chuva"?0.12:0,t,0.5);
+
+// passarinhos cantando de dia
+if(iniciado&&fatorDia>0.6&&clima==="Sol"&&Math.random()<0.004) somPassaro();
+
+}
+
+/* =========================================================
+   ESTADO DO JOGO
+   ========================================================= */
+
+let iniciado=false;
+let fim=false;
+let motivoFim="";
+let dinheiro=0;
+let madeira=0;
+let suspeita=0;
+let clima="Sol";
+let tempo=0.6;            // hora do dia (começa de manhã)
+let fatorDia=1;           // 1 = dia claro, 0 = noite
+let quadro=0;
+let nivelMachado=1;
+let skinAtual=0;
+const skinsCompradas=[true,false,false,false,false];
+let arvoreAlvo=null;
+let cortando=false;
+let quadroCorte=0;
+let tremerCamera=0;
+
+// contadores usados pelas missões
+const conta={cortadas:0,vendidas:0,vendidasNorte:0,castanheiras:0,roupasCompradas:0};
+
+function capacidade(){
+return carro.liberado?CAPACIDADE_CARRO:CAPACIDADE_MOCHILA;
+}
+
+// o clima muda de tempos em tempos
+setInterval(()=>{
+if(!iniciado||fim) return;
+const r=Math.random();
+const novo=r<0.55?"Sol":(r<0.8?"Chuva":"Neblina");
+if(novo!==clima){
+clima=novo;
+avisar(clima==="Sol"?"☀️ O sol voltou":(clima==="Chuva"?"🌧️ Começou a chover":"🌫️ Chegou uma neblina (a suspeita cai mais rápido)"));
+}
+},40000);
+
+/* =========================================================
+   MISSÕES
+   (contador = o que conta para a missão; meta = quanto precisa)
+   ========================================================= */
+
+const MISSOES=[
+{
+titulo:"Primeiro serviço",
+texto:"Corte 5 árvores na floresta.",
+contador:"cortadas",meta:5,recompensa:100,
+fala:"Ô, novato! Aqui ninguém pergunta de onde vem a madeira... Corta 5 árvores pra mim e volta aqui."
+},
+{
+titulo:"Hora de vender",
+texto:"Venda 5 toras na serraria da vila.",
+contador:"vendidas",meta:5,recompensa:150,alvo:"serraria",
+fala:"Madeira parada não vale nada. Leva as toras na serraria aqui do lado e vende (aperte E lá)."
+},
+{
+titulo:"Ferramenta nova",
+texto:"Melhore o machado com o Ferreiro Tião (nível 2).",
+contador:"nivelMachado",absoluto:true,meta:2,recompensa:100,alvo:"ferreiro",
+fala:"Esse machado velho não corta nem manteiga. Fala com o Tião, o ferreiro."
+},
+{
+titulo:"Disfarce",
+texto:"Compre uma roupa nova na loja da Dona Rosa.",
+contador:"roupasCompradas",meta:1,recompensa:100,alvo:"rosa",
+fala:"Os fiscais já conhecem a tua camisa. Troca de roupa na loja da Dona Rosa."
+},
+{
+titulo:"Serviço grande",
+texto:"Corte 15 árvores.",
+contador:"cortadas",meta:15,recompensa:300,ganhaCarro:true,
+fala:"Agora é serviço de gente grande: 15 árvores. Se der conta, te dou a minha caminhonete."
+},
+{
+titulo:"Entrega no Norte",
+texto:"Venda 20 toras na Serraria do Norte (siga a estrada).",
+contador:"vendidasNorte",meta:20,recompensa:500,alvo:"norte",
+fala:"Na Serraria do Norte pagam o dobro e não fazem pergunta. Pega a caminhonete e leva 20 toras pra lá."
+},
+{
+titulo:"A castanheira",
+texto:"Corte uma castanheira na floresta do outro lado do rio.",
+contador:"castanheiras",meta:1,recompensa:400,alvo:"leste",
+fala:"Tem comprador pagando caro por castanheira. É proibido cortar, mas... atravessa a ponte e derruba uma. Chama muita atenção, viu?"
+},
+{
+titulo:"Machado de ouro",
+texto:"Chegue ao nível 4 de ferramenta.",
+contador:"nivelMachado",absoluto:true,meta:4,recompensa:300,alvo:"ferreiro",
+fala:"Com um machado de ouro tu derruba a floresta inteira. Vai lá no Tião."
+},
+{
+titulo:"O grande golpe",
+texto:"Junte "+META_DINHEIRO+" de dinheiro.",
+contador:"dinheiro",absoluto:true,meta:META_DINHEIRO,recompensa:0,final:true,
+fala:"Último serviço: junta "+META_DINHEIRO+" e some daqui antes que a polícia te pegue."
+}
+];
+
+let missaoIdx=0;
+let missaoAceita=false;
+let inicioMissao=0;
+
+function valorContador(nome){
+if(nome==="nivelMachado") return nivelMachado;
+if(nome==="dinheiro") return dinheiro;
+return conta[nome];
+}
+
+function progressoMissao(){
+const m=MISSOES[missaoIdx];
+if(!m||!missaoAceita) return 0;
+const v=valorContador(m.contador);
+return m.absoluto?v:v-inicioMissao;
+}
+
+function missaoCompleta(){
+const m=MISSOES[missaoIdx];
+return m&&missaoAceita&&progressoMissao()>=m.meta;
+}
+
+function aceitarMissao(){
+const m=MISSOES[missaoIdx];
+missaoAceita=true;
+inicioMissao=m.absoluto?0:conta[m.contador];
+avisar("📜 Nova missão: "+m.titulo);
+}
+
+// para onde o feixe de luz e o mapa apontam
+function alvoMissao(){
+if(missaoIdx>=MISSOES.length) return null;
+if(!missaoAceita||missaoCompleta()) return LUGARES.ze;
+const a=MISSOES[missaoIdx].alvo;
+return a?LUGARES[a]:null;
+}
+
+// curiosidades que aparecem enquanto você corta
+const FATOS=[
+"Desmatar sem autorização é crime ambiental no Brasil (Lei de Crimes Ambientais, 9.605/1998).",
+"A castanheira é protegida por lei: é proibido cortá-la nas florestas nativas.",
+"As raízes das árvores seguram o solo e protegem os rios.",
+"As florestas são a casa de milhares de espécies de animais e plantas.",
+"As árvores retiram gás carbônico do ar e ajudam a controlar o clima.",
+"A floresta amazônica ajuda a formar chuvas que chegam a outras regiões do Brasil.",
+"O desmatamento na Amazônia é acompanhado por satélites do INPE."
+];
+let proximoFato=0;
+
+/* =========================================================
+   CONVERSAS (DIÁLOGOS)
+   ========================================================= */
+
+let dialogoAberto=false;
+let opcoesDialogo={};
+
+function abrirDialogo(nome,texto,opcoes){
+dialogoAberto=true;
+opcoesDialogo={};
+document.getElementById("dialogoNome").textContent=nome;
+document.getElementById("dialogoTexto").textContent=texto;
+const caixaOpcoes=document.getElementById("dialogoOpcoes");
+caixaOpcoes.innerHTML="";
+for(const o of opcoes||[]){
+const linha=document.createElement("div");
+linha.innerHTML="<span class='tecla'>"+o.tecla+"</span>";
+linha.appendChild(document.createTextNode(o.texto));
+caixaOpcoes.appendChild(linha);
+opcoesDialogo[o.tecla]=o.acao;
+}
+document.getElementById("dialogo").style.display="block";
+}
+
+function fecharDialogo(){
+dialogoAberto=false;
+document.getElementById("dialogo").style.display="none";
+}
+
+function falarZe(){
+
+const m=MISSOES[missaoIdx];
+
+if(!missaoAceita){
+aceitarMissao();
+abrirDialogo("Seu Zé",m.fala);
+return;
+}
+
+if(missaoCompleta()&&!m.final){
+
+dinheiro+=m.recompensa;
+somMoeda();
+let texto="Muito bem! Toma aqui 💰 "+m.recompensa+". ";
+
+if(m.ganhaCarro){
+carro.liberado=true;
+modeloCarro.remove(cadeado);
+texto+="E a caminhonete agora é tua! Ela está estacionada na vila: aperte F perto dela. Na caçamba cabem "+CAPACIDADE_CARRO+" toras. ";
+somNivel();
+}
+
+missaoIdx++;
+missaoAceita=false;
+aceitarMissao();
+abrirDialogo("Seu Zé",texto+MISSOES[missaoIdx].fala);
+return;
+
+}
+
+abrirDialogo("Seu Zé",
+"E aí? Ainda falta: "+m.texto+" ("+Math.min(progressoMissao(),m.meta)+"/"+m.meta+")");
+
+}
+
+function falarFerreiro(){
+
+const atual=NIVEIS_MACHADO[nivelMachado-1];
+const proximo=NIVEIS_MACHADO[nivelMachado];
+
+if(!proximo){
+abrirDialogo("Ferreiro Tião","Tu já tem a "+atual.nome+". Melhor que isso eu não faço.");
+return;
+}
+
+abrirDialogo("Ferreiro Tião",
+"Tu tá com: "+atual.nome+" (nível "+nivelMachado+"). Com o "+proximo.nome+" tu corta bem mais rápido.",
+[{
+tecla:"1",
+texto:"Comprar "+proximo.nome+" por 💰 "+proximo.preco,
+acao:()=>{
+if(dinheiro<proximo.preco){
+somErro();
+avisar("💸 Dinheiro insuficiente");
+return;
+}
+dinheiro-=proximo.preco;
+nivelMachado++;
+montarFerramenta();
+somNivel();
+avisar("🪓 Você agora tem: "+proximo.nome+" (nível "+nivelMachado+")");
+falarFerreiro();
+}
+}]);
+
+}
+
+function falarRosa(){
+
+const opcoes=SKINS.map((s,i)=>{
+
+let texto=s.nome+" — ";
+if(i===skinAtual) texto+="vestindo ✔";
+else if(skinsCompradas[i]) texto+="vestir";
+else texto+="💰 "+s.preco;
+
+return{
+tecla:String(i+1),
+texto:texto,
+acao:()=>{
+if(!skinsCompradas[i]){
+if(dinheiro<s.preco){
+somErro();
+avisar("💸 Dinheiro insuficiente");
+return;
+}
+dinheiro-=s.preco;
+skinsCompradas[i]=true;
+conta.roupasCompradas++;
+somMoeda();
+}
+skinAtual=i;
+vestir(i);
+avisar("👕 Roupa: "+s.nome);
+falarRosa();
+}
+};
+
+});
+
+abrirDialogo("Dona Rosa","Olá, querido! Escolha uma roupa:",opcoes);
+
+}
+
+function vender(preco,noNorte){
+
+if(madeira===0){
+somErro();
+avisar("Você não tem madeira para vender.");
+return;
+}
+
+const ganho=madeira*preco;
+dinheiro+=ganho;
+conta.vendidas+=madeira;
+if(noNorte) conta.vendidasNorte+=madeira;
+avisar("💰 Vendeu "+madeira+" toras por "+ganho);
+madeira=0;
+somMoeda();
+
+}
+
+// o que dá para fazer com o E aqui perto?
+function interacaoProxima(){
+
+if(carro.dentro){
+if(distancia(player,LUGARES.serraria)<9) return{texto:"Vender madeira (💰 "+PRECO_TORA+" cada)",acao:()=>vender(PRECO_TORA,false)};
+if(distancia(player,LUGARES.norte)<10) return{texto:"Vender madeira (💰 "+PRECO_TORA_NORTE+" cada)",acao:()=>vender(PRECO_TORA_NORTE,true)};
+return null;
+}
+
+for(const npc of npcs){
+if(distancia(player,npc)<3.5) return{texto:"Falar com "+npc.nome,acao:npc.falar};
+}
+
+if(distancia(player,LUGARES.serraria)<6) return{texto:"Vender madeira (💰 "+PRECO_TORA+" cada)",acao:()=>vender(PRECO_TORA,false)};
+if(distancia(player,LUGARES.norte)<7) return{texto:"Vender madeira (💰 "+PRECO_TORA_NORTE+" cada)",acao:()=>vender(PRECO_TORA_NORTE,true)};
+
+return null;
+
+}
+
+function teclaApertada(k){
+
+if(!iniciado){
+if(k==="enter"||k===" ") iniciarJogo();
+return;
+}
+
+if(fim){
+if(k==="r") location.reload();
+return;
+}
+
+if(k==="m") alternarMusica();
+if(k==="g") definirGraficos(!graficosAltos,true);
+
+if(dialogoAberto){
+if(opcoesDialogo[k]) opcoesDialogo[k]();
+else if(k==="e"||k==="escape") fecharDialogo();
+return;
+}
+
+if(k==="e"){
+const i=interacaoProxima();
+if(i) i.acao();
+}
+
+if(k==="f") entrarOuSairDoCarro();
+
+}
+
+function iniciarJogo(){
+if(iniciado) return;
+iniciado=true;
+document.getElementById("inicio").style.display="none";
+document.getElementById("hud").style.display="block";
+iniciarAudio();
+avisar("👋 Fale com o Seu Zé: siga o feixe de luz amarela");
+}
+
+/* =========================================================
+   O LENHADOR A PÉ
+   ========================================================= */
+
+function atualizarJogador(){
+
+if(carro.dentro){
+cortando=false;
+arvoreAlvo=null;
+dirigir();
+return;
+}
+
+let dx=0,dz=0;
+
+if(!dialogoAberto){
 if(keys["w"]) dz-=1;
 if(keys["s"]) dz+=1;
 if(keys["a"]) dx-=1;
 if(keys["d"]) dx+=1;
+}
 
-const andando=(dx!==0||dz!==0);
+const andando=(dx!==0||dz!==0)&&!keys[" "];
 
 if(andando){
 
@@ -663,228 +2470,678 @@ const tam=Math.hypot(dx,dz);
 const nx=player.x+dx/tam*VELOCIDADE;
 const nz=player.z+dz/tam*VELOCIDADE;
 
-// não deixa entrar no rio
-if(distanciaRio(nx,nz)>6){
-player.x=nx;
-player.z=nz;
-}
+// anda em cada direção separada, para escorregar nas paredes
+if(podeAndar(nx,player.z,0.4)) player.x=nx;
+if(podeAndar(player.x,nz,0.4)) player.z=nz;
 
 player.direcao=Math.atan2(dx,dz);
 
 }
 
-player.x=Math.max(0,Math.min(MUNDO,player.x));
-player.z=Math.max(0,Math.min(MUNDO,player.z));
-
 arvoreAlvo=null;
+cortando=keys[" "]&&!dialogoAberto;
 
-if(keys[" "]){
+if(cortando){
 
-for(const tree of trees){
+quadroCorte++;
+arvoreAlvo=arvoreMaisProxima();
 
-if(tree.cortada) continue;
+if(arvoreAlvo){
 
-const dist=Math.hypot(player.x-tree.x,player.z-tree.z);
+player.direcao=Math.atan2(arvoreAlvo.x-player.x,arvoreAlvo.z-player.z);
 
-if(dist<2.5){
+const motosserra=NIVEIS_MACHADO[nivelMachado-1].nome==="Motosserra";
+const ritmo=motosserra?12:24;
 
-arvoreAlvo=tree;
+if(quadroCorte%ritmo===Math.floor(ritmo/2)){
 
-// vira para a árvore
-player.direcao=Math.atan2(tree.x-player.x,tree.z-player.z);
+if(madeira>=capacidade()){
 
-tree.vida-=1.2;
+somErro();
+avisar("🎒 Sem espaço! Venda a madeira na serraria.");
 
-if(tree.vida<=0){
+}else{
 
-tree.cortada=true;
-tree.caindo=0.001;
-tree.direcaoQueda=player.direcao;
+// golpe!
+arvoreAlvo.vida-=NIVEIS_MACHADO[nivelMachado-1].dano*(motosserra?0.5:1);
+arvoreAlvo.tremer=10;
+if(motosserra) somMotosserra(); else somGolpe();
+soltarParticulas(
+arvoreAlvo.x-Math.sin(player.direcao)*0.5,
+arvoreAlvo.y+1,
+arvoreAlvo.z-Math.cos(player.direcao)*0.5,
+0xc9a26b,5,0.12
+);
 
-madeira++;
-
-suspeita+=SUSPEITA_POR_ARVORE;
-
-document.getElementById("wood").innerText=madeira;
-document.getElementById("sus").innerText=suspeita;
-
-}
-
-break;
-
-}
-
-}
+if(arvoreAlvo.vida<=0) cortarArvore(arvoreAlvo);
 
 }
 
-if(keys["e"]){
-
-dinheiro+=madeira*50;
-
-madeira=0;
-
-document.getElementById("money").innerText=dinheiro;
-document.getElementById("wood").innerText=0;
+}
 
 }
 
-tempo+=0.002;
+}else{
+quadroCorte=0;
+}
 
 animarLenhador(andando);
 
 }
 
-/* ---------- Animações ---------- */
+function arvoreMaisProxima(){
+let melhor=null,menor=1e9;
+for(const t of trees){
+if(t.cortada) continue;
+const d=Math.hypot(player.x-t.x,player.z-t.z)-t.raio;
+if(d<2.3&&d<menor){
+menor=d;
+melhor=t;
+}
+}
+return melhor;
+}
+
+function cortarArvore(tree){
+
+tree.cortada=true;
+tree.tremer=0;
+derrubar(tree,player.direcao);
+
+const castanheira=tree.tipo==="castanheira";
+const toras=castanheira?3:1;
+madeira=Math.min(capacidade(),madeira+toras);
+
+conta.cortadas++;
+if(castanheira) conta.castanheiras++;
+
+let s=SUSPEITA_POR_ARVORE;
+if(castanheira) s*=4;
+if(NIVEIS_MACHADO[nivelMachado-1].nome==="Motosserra") s+=2;   // motosserra faz barulho
+suspeita+=s;
+
+if(castanheira) avisar("⚠️ Castanheira é protegida por lei! A suspeita subiu muito.");
+avisar("🪵 +"+toras+(toras>1?" toras":" tora"));
+
+if(conta.cortadas%4===0){
+avisar("🌱 Você sabia? "+FATOS[proximoFato%FATOS.length]);
+proximoFato++;
+}
+
+marcarTocoNoMapa(tree);
+
+}
 
 function animarLenhador(andando){
 
-const y=alturaFinal(player.x,player.z);
-lenhador.position.set(player.x,y,player.z);
+const y=alturaChao(player.x,player.z);
+lenhador.grupo.position.set(player.x,y,player.z);
 
 // gira suavemente para a direção certa
-let diferenca=player.direcao-lenhador.rotation.y;
+let diferenca=player.direcao-lenhador.grupo.rotation.y;
 while(diferenca>Math.PI) diferenca-=Math.PI*2;
 while(diferenca<-Math.PI) diferenca+=Math.PI*2;
-lenhador.rotation.y+=diferenca*0.2;
+lenhador.grupo.rotation.y+=diferenca*0.2;
 
-if(andando){
+animarPessoa(lenhador,andando,quadro*0.25);
+if(andando) lenhador.grupo.position.y+=Math.abs(Math.sin(quadro*0.25))*0.08;
 
-// balança pernas e braços ao andar
-const passo=Math.sin(quadro*0.25)*0.7;
-pernaE.rotation.x=passo;
-pernaD.rotation.x=-passo;
-bracoE.rotation.x=-passo;
-bracoD.rotation.x=passo;
-lenhador.position.y+=Math.abs(Math.sin(quadro*0.25))*0.08;
+if(cortando){
 
+const motosserra=NIVEIS_MACHADO[nivelMachado-1].nome==="Motosserra";
+
+if(motosserra){
+// segura a motosserra na frente, tremendo
+lenhador.bracoD.rotation.x=-1.3+Math.sin(quadro*1.7)*0.05;
+lenhador.bracoE.rotation.x=-1.3;
 }else{
-
-pernaE.rotation.x*=0.8;
-pernaD.rotation.x*=0.8;
-bracoE.rotation.x*=0.8;
-bracoD.rotation.x*=0.8;
-
-}
-
-if(keys[" "]){
-
 // golpe de machado: levanta o braço e desce com força
-const golpe=(quadro%24)/24;
-bracoD.rotation.x=-2.6+Math.sin(golpe*Math.PI)*2.2;
-bracoE.rotation.x=-1.2;
-
+const golpe=(quadroCorte%24)/24;
+lenhador.bracoD.rotation.x=-2.6+Math.sin(golpe*Math.PI)*2.2;
+lenhador.bracoE.rotation.x=-1.2;
 }
-
-}
-
-function animarArvores(){
-
-for(const tree of trees){
-
-// árvore caindo
-if(tree.caindo>0&&tree.caindo<1){
-
-tree.caindo+=0.02+tree.caindo*0.05;
-
-const ang=Math.min(1,tree.caindo)*Math.PI/2;
-tree.modelo.rotation.set(0,0,0);
-tree.modelo.rotateY(tree.direcaoQueda);
-tree.modelo.rotateX(ang);
-
-if(tree.caindo>=1) virarToco(tree);
 
 }
 
 }
 
-// a árvore sendo cortada treme
-if(arvoreAlvo&&!arvoreAlvo.cortada){
-arvoreAlvo.modelo.rotation.z=Math.sin(quadro*0.9)*0.03;
+/* =========================================================
+   DIRIGINDO A CAMINHONETE
+   ========================================================= */
+
+function entrarOuSairDoCarro(){
+
+if(carro.dentro){
+
+if(Math.abs(carro.vel)>0.15){
+avisar("Pare a caminhonete antes de sair.");
+return;
+}
+
+// sai pelo lado esquerdo (ou direito, se não der)
+for(const lado of[1,-1]){
+const x=carro.x+Math.cos(carro.ang)*2.6*lado;
+const z=carro.z-Math.sin(carro.ang)*2.6*lado;
+if(podeAndar(x,z,0.4)){
+player.x=x;
+player.z=z;
+carro.dentro=false;
+carro.vel=0;
+lenhador.grupo.visible=true;
+return;
+}
+}
+
+avisar("Não dá para sair aqui.");
+return;
+
+}
+
+if(distancia(player,carro)>4.5) return;
+
+if(!carro.liberado){
+somErro();
+avisar("🔒 A caminhonete é do Seu Zé. Complete as missões dele para ganhá-la.");
+return;
+}
+
+carro.dentro=true;
+lenhador.grupo.visible=false;
+avisar("🚙 W acelera · S freia/ré · A/D vira · F sai");
+
+}
+
+function dirigir(){
+
+let acelerar=0,virar=0;
+
+if(!dialogoAberto){
+if(keys["w"]) acelerar=1;
+if(keys["s"]) acelerar=-1;
+if(keys["a"]) virar=1;
+if(keys["d"]) virar=-1;
+}
+
+if(acelerar>0) carro.vel+=0.012;
+if(acelerar<0) carro.vel-=carro.vel>0?0.025:0.008;
+
+carro.vel*=0.985;
+carro.vel=limitar(carro.vel,-0.3,VELOCIDADE_CARRO);
+if(acelerar===0&&Math.abs(carro.vel)<0.003) carro.vel=0;
+
+carro.ang+=virar*0.04*Math.min(1,Math.abs(carro.vel)*3)*Math.sign(carro.vel);
+
+const nx=carro.x+Math.sin(carro.ang)*carro.vel;
+const nz=carro.z+Math.cos(carro.ang)*carro.vel;
+
+if(podeAndar(nx,nz,1.5)){
+carro.x=nx;
+carro.z=nz;
+}else{
+if(Math.abs(carro.vel)>0.25){
+somBatida();
+tremerCamera=8;
+}
+carro.vel*=-0.3;
+}
+
+player.x=carro.x;
+player.z=carro.z;
+player.direcao=carro.ang;
+
+// poeira quando anda rápido
+if(Math.abs(carro.vel)>0.4&&quadro%4===0){
+soltarParticulas(
+carro.x-Math.sin(carro.ang)*2.4,
+alturaChao(carro.x,carro.z)+0.3,
+carro.z-Math.cos(carro.ang)*2.4,
+0xbfa27a,1,0.05
+);
 }
 
 }
 
-/* ---------- Céu, dia e noite, clima ---------- */
+function atualizarModeloCarro(){
 
-const corDia=new THREE.Color(0x87ceeb);
-const corNoite=new THREE.Color(0x0b1633);
-const corNeblina=new THREE.Color(0xc8ccd0);
-const corChuva=new THREE.Color(0x6c7a89);
-const corCeu=new THREE.Color();
+const fx=Math.sin(carro.ang)*1.7;
+const fz=Math.cos(carro.ang)*1.7;
+const hFrente=alturaChao(carro.x+fx,carro.z+fz);
+const hTras=alturaChao(carro.x-fx,carro.z-fz);
+
+modeloCarro.position.set(carro.x,(hFrente+hTras)/2,carro.z);
+modeloCarro.rotation.set(-Math.atan2(hFrente-hTras,3.4),carro.ang,0);
+
+for(const r of rodas) r.rotation.x+=carro.vel*2;
+
+// mostra as toras na caçamba
+const visiveis=Math.ceil(madeira/capacidade()*torasCarro.length);
+torasCarro.forEach((t,i)=>t.visible=carro.liberado&&i<visiveis);
+
+}
+
+/* =========================================================
+   PERSONAGENS SE MEXENDO
+   ========================================================= */
+
+function atualizarNPCs(){
+
+for(const npc of npcs){
+const g=npc.pessoa.grupo;
+// olha para o jogador quando ele chega perto
+if(distancia(player,npc)<8&&!carro.dentro){
+g.rotation.y=Math.atan2(player.x-npc.x,player.z-npc.z);
+}
+npc.pessoa.cabeca.rotation.z=Math.sin(quadro*0.03+npc.x)*0.05;
+}
+
+marcadorZe.visible=!missaoAceita||missaoCompleta();
+marcadorZe.position.y=3.9+Math.sin(quadro*0.08)*0.15;
+
+}
+
+function atualizarFiscais(){
+
+for(const f of fiscais){
+
+if(iniciado&&!fim){
+const alvo=f.rota[f.alvo];
+const dx=alvo[0]-f.x;
+const dz=alvo[1]-f.z;
+const d=Math.hypot(dx,dz);
+if(d<1) f.alvo=(f.alvo+1)%f.rota.length;
+else{
+f.x+=dx/d*0.08;
+f.z+=dz/d*0.08;
+f.pessoa.grupo.rotation.y=Math.atan2(dx,dz);
+}
+}
+
+f.pessoa.grupo.position.set(f.x,alturaChao(f.x,f.z),f.z);
+animarPessoa(f.pessoa,iniciado&&!fim,quadro*0.18);
+
+// o fiscal vê você cortando?
+const viu=iniciado&&!fim&&cortando&&arvoreAlvo&&distancia(player,f)<RAIO_FISCAL;
+
+if(viu){
+suspeita+=0.12;
+if(!f.viuAgora) avisar("👀 Um fiscal está vendo você cortar!");
+}
+
+f.viuAgora=viu;
+f.rotulo.material.color.setHex(viu?0xff5252:0xffffff);
+
+}
+
+}
+
+/* =========================================================
+   CÉU, DIA E NOITE, CLIMA
+   ========================================================= */
+
+const COR={
+topoDia:new THREE.Color(0x3f8fe0),
+horizonteDia:new THREE.Color(0xc4e6ff),
+topoNoite:new THREE.Color(0x050b1f),
+horizonteNoite:new THREE.Color(0x1b2748),
+porDoSol:new THREE.Color(0xff9a5c),
+chuva:new THREE.Color(0x6c7a89),
+neblina:new THREE.Color(0xc8ccd0),
+luzSol:new THREE.Color(0xfff1d6),
+luzLua:new THREE.Color(0x8aa0ff)
+};
+
+const corTopo=new THREE.Color();
+const corHorizonte=new THREE.Color();
+const direcaoSol=new THREE.Vector3();
 
 function atualizarCeu(){
 
-const brilho=(Math.sin(tempo)+1)/2;   // 0 = noite, 1 = meio-dia
+const alturaSol=Math.sin(tempo);
+fatorDia=suave(alturaSol*2.5+0.35);
+const noite=1-fatorDia;
 
-corCeu.copy(corNoite).lerp(corDia,brilho);
+corTopo.copy(COR.topoNoite).lerp(COR.topoDia,fatorDia);
+corHorizonte.copy(COR.horizonteNoite).lerp(COR.horizonteDia,fatorDia);
 
-if(clima==="Chuva") corCeu.lerp(corChuva,0.6);
-if(clima==="Neblina") corCeu.lerp(corNeblina,0.7);
+// nascer e pôr do sol deixam o horizonte alaranjado
+const laranja=Math.max(0,1-Math.abs(alturaSol)*4)*0.7;
+corHorizonte.lerp(COR.porDoSol,laranja);
 
-scene.background=corCeu;
-scene.fog.color.copy(corCeu);
+if(clima==="Chuva"){
+corTopo.lerp(COR.chuva,0.6*fatorDia+0.2);
+corHorizonte.lerp(COR.chuva,0.6*fatorDia+0.2);
+}
+if(clima==="Neblina"){
+corTopo.lerp(COR.neblina,0.7*fatorDia+0.1);
+corHorizonte.lerp(COR.neblina,0.8*fatorDia+0.1);
+}
 
-// neblina deixa a visão bem curta
-const longe=(clima==="Neblina")?35:(clima==="Chuva"?90:140);
+ceuMat.uniforms.topo.value.copy(corTopo);
+ceuMat.uniforms.horizonte.value.copy(corHorizonte);
+scene.fog.color.copy(corHorizonte);
+ceu.position.copy(camera.position);
+estrelas.position.copy(camera.position);
+estrelas.material.opacity=noite*(clima==="Sol"?1:0.3);
+
+// névoa: neblina deixa a visão bem curta
+const longe=clima==="Neblina"?55:(clima==="Chuva"?150:260);
 scene.fog.far+=(longe-scene.fog.far)*0.02;
-scene.fog.near=scene.fog.far*0.25;
+scene.fog.near=scene.fog.far*0.3;
 
-// posição do sol e da lua girando no céu
-const ang=tempo;
-const sx=Math.cos(ang)*120;
-const sy=Math.sin(ang)*90;
+// sol e lua girando no céu
+direcaoSol.set(Math.cos(tempo),alturaSol,-0.35).normalize();
+discoSol.position.copy(camera.position).addScaledVector(direcaoSol,700);
+discoLua.position.copy(camera.position).addScaledVector(direcaoSol,-700);
+discoSol.visible=alturaSol>-0.1&&clima!=="Neblina";
+discoLua.visible=alturaSol<0.1&&clima!=="Neblina";
 
-discoSol.position.set(player.x+sx,sy,player.z-80);
-discoLua.position.set(player.x-sx,-sy,player.z-80);
-discoSol.visible=sy>-5;
-discoLua.visible=-sy>-5;
-
-sol.position.set(player.x+30,40,player.z+20);
+// luz principal: sol de dia, lua azulada de noite
+const luzDoSol=alturaSol>0;
+const dir=luzDoSol?direcaoSol.clone():direcaoSol.clone().negate();
+dir.y=Math.max(0.35,dir.y);
+dir.normalize();
+sol.position.set(player.x+dir.x*100,dir.y*100,player.z+dir.z*100);
 sol.target.position.set(player.x,0,player.z);
-sol.intensity=0.15+brilho*1.0*(clima==="Sol"?1:0.5);
-luzCeu.intensity=0.35+brilho*0.5;
+sol.color.copy(luzDoSol?COR.luzSol:COR.luzLua);
+const nublado=clima==="Sol"?1:0.45;
+sol.intensity=luzDoSol?(0.25+fatorDia*0.85)*nublado:0.25;
+luzCeu.intensity=0.3+fatorDia*0.45;
+luzCeu.color.copy(corTopo).lerp(COR.horizonteDia,0.5);
+
+// janelas e postes acendem à noite
+matJanela.emissive.setRGB(noite*0.9,noite*0.7,noite*0.3);
+matLampada.emissive.setRGB(noite,noite*0.85,noite*0.5);
+for(const luz of luzesPostes) luz.intensity=noite*1.3;
+matFarol.emissive.setRGB(0.2+noite*0.8,0.2+noite*0.8,0.15+noite*0.6);
+fogoMat.emissiveIntensity=0.8+Math.random()*0.4;
 
 // nuvens andando devagar
 for(const n of nuvens){
-n.position.x+=0.03;
-if(n.position.x>MUNDO*1.2) n.position.x=-MUNDO*0.2;
+n.position.x+=0.04;
+if(n.position.x>MUNDO*1.3) n.position.x=-MUNDO*0.3;
 }
 
-// chuva segue o lenhador
-chuva.visible=(clima==="Chuva");
-
+// chuva segue a câmera
+chuva.visible=clima==="Chuva";
 if(chuva.visible){
-
-chuva.position.set(player.x,0,player.z);
-
+chuva.position.set(player.x,alturaChao(player.x,player.z),player.z);
 for(let i=0;i<NUM_GOTAS;i++){
-gotasPos[i*3+1]-=0.6;
-if(gotasPos[i*3+1]<0) gotasPos[i*3+1]=30;
+gotasPos[i*3+1]-=0.7;
+if(gotasPos[i*3+1]<0) gotasPos[i*3+1]=35;
 }
-
 gotasGeo.attributes.position.needsUpdate=true;
+}
+
+// vaga-lumes
+vagalumes.material.opacity=noite*0.9;
+vagalumes.visible=noite>0.1;
+if(vagalumes.visible){
+vagalumes.position.set(player.x,alturaChao(player.x,player.z),player.z);
+vagalumesBase.forEach((v,i)=>{
+vagalumesPos[i*3]=v.x+Math.sin(quadro*0.01+v.fase)*2;
+vagalumesPos[i*3+1]=v.y+Math.sin(quadro*0.03+v.fase*2)*0.6;
+vagalumesPos[i*3+2]=v.z+Math.cos(quadro*0.012+v.fase)*2;
+});
+vagalumesGeo.attributes.position.needsUpdate=true;
+}
+
+// pássaros voando (só de dia)
+for(const p of passaros){
+p.g.visible=fatorDia>0.5;
+const a=p.fase+quadro*p.vel;
+p.g.position.set(p.cx+Math.cos(a)*p.raio,p.altura,p.cz+Math.sin(a)*p.raio);
+p.g.rotation.y=-a;
+p.asaE.rotation.z=Math.sin(quadro*0.3+p.fase)*0.6;
+p.asaD.rotation.z=-p.asaE.rotation.z;
+}
+
+// serras girando e água brilhando
+for(const s of serras) s.rotation.y+=0.3;
+agua.material.opacity=0.78+Math.sin(quadro*0.02)*0.04;
 
 }
 
-// água balançando de leve
-agua.position.y=NIVEL_AGUA+Math.sin(quadro*0.03)*0.05;
+/* =========================================================
+   CÂMERA
+   ========================================================= */
 
-}
-
-/* ---------- Câmera em terceira pessoa ---------- */
+const alvoCamera=new THREE.Vector3();
+const olharCamera=new THREE.Vector3();
+const desejada=new THREE.Vector3();
 
 function atualizarCamera(){
 
-const alvo=new THREE.Vector3(player.x,alturaFinal(player.x,player.z)+2.5,player.z-4);
-const desejada=new THREE.Vector3(player.x,alvo.y+6,player.z+11);
+const y=alturaChao(player.x,player.z);
 
-camera.position.lerp(desejada,0.1);
-camera.lookAt(alvo);
+if(!iniciado){
+// na tela inicial a câmera gira em volta da vila
+const a=quadro*0.002;
+camera.position.set(VILA.x+Math.cos(a)*45,y+18,VILA.z+Math.sin(a)*45);
+camera.lookAt(VILA.x,y+3,VILA.z);
+olharCamera.set(VILA.x,y+3,VILA.z);
+return;
+}
+
+if(carro.dentro){
+// atrás da caminhonete
+const fx=Math.sin(carro.ang);
+const fz=Math.cos(carro.ang);
+desejada.set(carro.x-fx*13,y+6.5,carro.z-fz*13);
+alvoCamera.set(carro.x+fx*6,y+1.5,carro.z+fz*6);
+}else{
+// atrás e acima do lenhador
+desejada.set(player.x,y+8,player.z+12);
+alvoCamera.set(player.x,y+2.5,player.z-4);
+}
+
+// a câmera não entra dentro dos morros
+desejada.y=Math.max(desejada.y,alturaFinal(desejada.x,desejada.z)+2);
+
+camera.position.lerp(desejada,0.08);
+olharCamera.lerp(alvoCamera,0.15);
+
+if(tremerCamera>0){
+tremerCamera--;
+camera.position.x+=(Math.random()-0.5)*0.3;
+camera.position.y+=(Math.random()-0.5)*0.3;
+}
+
+camera.lookAt(olharCamera);
 
 }
 
-/* ---------- Interface (HUD, barra de vida, sirene, fim) ---------- */
+/* =========================================================
+   INTERFACE (HUD): painéis, minimapa, avisos
+   ========================================================= */
+
+function avisar(texto){
+const lista=document.getElementById("avisos");
+const div=document.createElement("div");
+div.className="aviso painel";
+div.textContent=texto;
+lista.appendChild(div);
+while(lista.children.length>4) lista.removeChild(lista.firstChild);
+setTimeout(()=>div.remove(),texto.length>60?6000:3500);
+}
+
+// ---------- minimapa ----------
+
+const minimapa=document.getElementById("minimapa");
+const mapaCtx=minimapa.getContext("2d");
+const MAPA_PX=minimapa.width;
+const ESCALA_MAPA=MAPA_PX/MUNDO;
+
+// fundo do mapa: desenhado uma vez só
+const mapaFundo=document.createElement("canvas");
+mapaFundo.width=MAPA_PX;
+mapaFundo.height=MAPA_PX;
+const fundoCtx=mapaFundo.getContext("2d");
+
+(function desenharFundoMapa(){
+const img=fundoCtx.createImageData(MAPA_PX,MAPA_PX);
+for(let py=0;py<MAPA_PX;py++){
+for(let px=0;px<MAPA_PX;px++){
+const x=(px+0.5)/ESCALA_MAPA;
+const z=(py+0.5)/ESCALA_MAPA;
+const h=alturaFinal(x,z);
+let c;
+if(naPonte(x,z)) c=[141,110,75];
+else if(h<NIVEL_AGUA) c=[47,134,201];
+else if(h<NIVEL_AGUA+0.9) c=[217,196,138];
+else if(distanciaEstrada(x,z)<3.5) c=[176,140,96];
+else if(Math.hypot(x-VILA.x,z-VILA.z)<16) c=[190,160,120];
+else{
+const v=Math.min(1,h/12);
+c=[90-v*30,150-v*30,70-v*20];
+}
+const i=(py*MAPA_PX+px)*4;
+img.data[i]=c[0];
+img.data[i+1]=c[1];
+img.data[i+2]=c[2];
+img.data[i+3]=255;
+}
+}
+fundoCtx.putImageData(img,0,0);
+
+// árvores
+fundoCtx.fillStyle="#1f5a25";
+for(const t of trees){
+fundoCtx.fillRect(t.x*ESCALA_MAPA-0.5,t.z*ESCALA_MAPA-0.5,t.tipo==="castanheira"?2:1.2,t.tipo==="castanheira"?2:1.2);
+}
+})();
+
+function marcarTocoNoMapa(tree){
+fundoCtx.fillStyle="#a1784e";
+fundoCtx.fillRect(tree.x*ESCALA_MAPA-0.5,tree.z*ESCALA_MAPA-0.5,1.5,1.5);
+}
+
+function pontoMapa(x,z,cor,raio){
+mapaCtx.fillStyle=cor;
+mapaCtx.beginPath();
+mapaCtx.arc(x*ESCALA_MAPA,z*ESCALA_MAPA,raio,0,Math.PI*2);
+mapaCtx.fill();
+}
+
+function atualizarMinimapa(){
+
+if(quadro%3!==0) return;
+
+mapaCtx.drawImage(mapaFundo,0,0);
+
+// fiscais e a área que eles enxergam
+for(const f of fiscais){
+mapaCtx.fillStyle="rgba(255,80,80,.15)";
+mapaCtx.beginPath();
+mapaCtx.arc(f.x*ESCALA_MAPA,f.z*ESCALA_MAPA,RAIO_FISCAL*ESCALA_MAPA,0,Math.PI*2);
+mapaCtx.fill();
+pontoMapa(f.x,f.z,"#ff3d3d",3);
+}
+
+pontoMapa(LUGARES.serraria.x,LUGARES.serraria.z,"#ffb74d",3);
+pontoMapa(LUGARES.norte.x,LUGARES.norte.z,"#ffb74d",3.5);
+pontoMapa(LUGARES.ferreiro.x,LUGARES.ferreiro.z,"#90a4ae",2.5);
+pontoMapa(LUGARES.rosa.x,LUGARES.rosa.z,"#f48fb1",2.5);
+pontoMapa(ze.x,ze.z,"#fff176",3);
+if(!carro.dentro) pontoMapa(carro.x,carro.z,carro.liberado?"#42a5f5":"#78909c",3);
+
+// alvo da missão piscando
+const alvo=alvoMissao();
+if(alvo&&Math.floor(quadro/20)%2===0){
+mapaCtx.strokeStyle="#ffd54f";
+mapaCtx.lineWidth=2;
+mapaCtx.beginPath();
+mapaCtx.arc(alvo.x*ESCALA_MAPA,alvo.z*ESCALA_MAPA,6,0,Math.PI*2);
+mapaCtx.stroke();
+}
+
+// o jogador é uma setinha branca
+const ang=carro.dentro?carro.ang:lenhador.grupo.rotation.y;
+mapaCtx.save();
+mapaCtx.translate(player.x*ESCALA_MAPA,player.z*ESCALA_MAPA);
+mapaCtx.rotate(-ang);
+mapaCtx.fillStyle="#ffffff";
+mapaCtx.strokeStyle="#000";
+mapaCtx.lineWidth=1;
+mapaCtx.beginPath();
+mapaCtx.moveTo(0,6);
+mapaCtx.lineTo(4,-4);
+mapaCtx.lineTo(-4,-4);
+mapaCtx.closePath();
+mapaCtx.fill();
+mapaCtx.stroke();
+mapaCtx.restore();
+
+}
+
+// ---------- painéis ----------
+
+function atualizarHUD(){
+
+if(!iniciado) return;
+
+document.getElementById("dinheiro").textContent=dinheiro;
+document.getElementById("madeira").textContent=madeira+"/"+capacidade();
+document.getElementById("machado").textContent="Nv "+nivelMachado+" · "+NIVEIS_MACHADO[nivelMachado-1].nome;
+document.getElementById("derrubadas").textContent=conta.cortadas;
+
+const s=Math.floor(suspeita);
+document.getElementById("suspeitaNum").textContent=s+"%";
+const barra=document.getElementById("barraSuspeita");
+barra.style.width=s+"%";
+barra.style.background="hsl("+(120-s*1.2)+",75%,50%)";
+
+// relógio
+const horas=((tempo/(Math.PI*2))*24+6)%24;
+const hh=String(Math.floor(horas)).padStart(2,"0");
+const mm=String(Math.floor((horas%1)*6)*10).padStart(2,"0");
+const iconeClima=clima==="Sol"?(fatorDia>0.3?"☀️":"🌙"):(clima==="Chuva"?"🌧️":"🌫️");
+document.getElementById("relogio").textContent="🕒 "+hh+":"+mm+" · "+iconeClima+" "+clima;
+
+// missão
+const m=MISSOES[missaoIdx];
+document.getElementById("missaoNum").textContent=(missaoIdx+1)+"/"+MISSOES.length;
+
+if(!missaoAceita){
+document.getElementById("missaoTitulo").textContent="Fale com o Seu Zé";
+document.getElementById("missaoTexto").textContent="Ele está na vila, perto do escritório.";
+document.getElementById("barraMissao").style.width="0%";
+}else{
+const p=Math.min(progressoMissao(),m.meta);
+document.getElementById("missaoTitulo").textContent=m.titulo;
+document.getElementById("missaoTexto").textContent=missaoCompleta()
+?"✅ Pronto! Volte e fale com o Seu Zé."
+:m.texto;
+document.getElementById("barraMissao").style.width=(p/m.meta*100)+"%";
+}
+
+const alvo=alvoMissao();
+document.getElementById("missaoInfo").textContent=alvo
+?"📍 "+Math.round(distancia(player,alvo))+" m (siga o feixe amarelo)"
+:"🌲 Procure árvores pela floresta";
+
+// "aperte E para..."
+const acao=document.getElementById("acao");
+let texto="";
+
+if(!dialogoAberto){
+const i=interacaoProxima();
+if(i) texto="<span class='tecla'>E</span>"+i.texto;
+else if(carro.dentro) texto="<span class='tecla'>F</span>Sair da caminhonete";
+else if(distancia(player,carro)<4.5) texto="<span class='tecla'>F</span>"+(carro.liberado?"Entrar na caminhonete":"🔒 Caminhonete trancada");
+else if(arvoreMaisProxima()&&!cortando) texto="<span class='tecla'>Espaço</span>Cortar árvore";
+}
+
+acao.style.display=texto?"block":"none";
+if(texto&&acao.innerHTML!==texto) acao.innerHTML=texto;
+
+// feixe de luz no alvo da missão
+farol.visible=!!alvo&&distancia(player,alvo)>6;
+if(alvo){
+farol.position.set(alvo.x,alturaChao(alvo.x,alvo.z)+40,alvo.z);
+farol.material.opacity=0.22+Math.sin(quadro*0.08)*0.08;
+}
+
+}
 
 function atualizarBarraVida(){
 
@@ -895,55 +3152,42 @@ barra.style.display="none";
 return;
 }
 
+const alto=arvoreAlvo.tipo==="castanheira"?10:6.5;
 const p=new THREE.Vector3(
 arvoreAlvo.x,
-alturaFinal(arvoreAlvo.x,arvoreAlvo.z)+7,
+arvoreAlvo.y+alto*arvoreAlvo.escala,
 arvoreAlvo.z
 ).project(camera);
 
 barra.style.display="block";
 barra.style.left=((p.x+1)/2*innerWidth)+"px";
 barra.style.top=((1-p.y)/2*innerHeight)+"px";
-barra.firstElementChild.style.width=Math.max(0,arvoreAlvo.vida)+"%";
+barra.firstElementChild.style.width=Math.max(0,arvoreAlvo.vida/arvoreAlvo.vidaMax*100)+"%";
 
 }
 
+/* =========================================================
+   SUSPEITA, POLÍCIA E FIM DE JOGO
+   ========================================================= */
+
 function atualizarSuspeita(){
 
-// a suspeita cai devagar quando você para de cortar (na neblina cai mais rápido)
-if(!keys[" "]&&suspeita>0){
-
-const queda=(clima==="Neblina")?0.008:0.004;
+// a suspeita cai devagar quando você para de cortar
+// (na neblina e à noite cai mais rápido)
+if(!cortando&&suspeita>0){
+let queda=QUEDA_SUSPEITA;
+if(clima==="Neblina") queda*=2;
+if(fatorDia<0.3) queda*=1.5;
 suspeita=Math.max(0,suspeita-queda);
-
 }
 
 suspeita=Math.min(100,suspeita);
 
-document.getElementById("sus").innerText=Math.floor(suspeita);
-
 if(suspeita>=100) terminar("preso");
 
-}
-
-function atualizarMissao(){
-
-const missao=document.getElementById("missao");
-const n=cortadas();
-
-if(!missaoCumprida){
-
-missao.innerText="Corte 5 árvores ("+Math.min(n,5)+"/5)";
-
-if(n>=5){
-
-missaoCumprida=true;
-
-missao.innerText="Cumprida! Agora junte "+META_DINHEIRO+" 💰 sem a suspeita chegar a 100%";
-
-}
-
-}
+// última missão: juntou o dinheiro?
+const m=MISSOES[missaoIdx];
+if(m&&m.final&&missaoAceita&&dinheiro>=META_DINHEIRO) terminar("escapou");
 
 }
 
@@ -951,17 +3195,13 @@ function atualizarSirene(){
 
 const sirene=document.getElementById("sirene");
 
-if(suspeita>=70&&!fim){
-
+if(suspeita>=70&&!fim&&iniciado){
 sirene.style.display="block";
 sirene.style.background=(Math.floor(quadro/15)%2)
-?"rgba(255,0,0,.25)"
-:"rgba(0,80,255,.25)";
-
+?"rgba(255,0,0,.22)"
+:"rgba(0,80,255,.22)";
 }else{
-
 sirene.style.display="none";
-
 }
 
 }
@@ -972,6 +3212,7 @@ if(fim) return;
 
 fim=true;
 motivoFim=motivo;
+fecharDialogo();
 
 const tela=document.getElementById("fim");
 
@@ -980,7 +3221,8 @@ const titulo=(motivoFim==="preso")
 :"<h1 style='color:#ffd54f'>💰 Você escapou... desta vez</h1>";
 
 tela.innerHTML=titulo+
-"Você derrubou "+cortadas()+" árvores e juntou "+dinheiro+" de dinheiro.<br><br>"+
+"Você derrubou "+cortadas()+" árvores ("+conta.castanheiras+" castanheiras), "+
+"vendeu "+conta.vendidas+" toras e juntou "+dinheiro+" de dinheiro.<br><br>"+
 "Cortar árvores ilegalmente é crime ambiental:<br>"+
 "destrói a casa dos animais, piora o clima e seca os rios.<br>"+
 "A floresta precisa de guardiões, e não de lenhadores ilegais!<br><br>"+
@@ -990,27 +3232,89 @@ tela.style.display="flex";
 
 }
 
-/* ---------- Laço principal ---------- */
+/* =========================================================
+   QUALIDADE DOS GRÁFICOS (tecla G)
+   Computadores mais fracos ficam melhor no modo leve:
+   sem sombras, sem grama e com menos pixels.
+   ========================================================= */
+
+let graficosAltos=true;
+let medindoDesde=0;
+let quadrosMedidos=0;
+
+function definirGraficos(altos,avisarJogador){
+
+graficosAltos=altos;
+renderer.shadowMap.enabled=altos;
+renderer.setPixelRatio(altos?Math.min(devicePixelRatio,1.5):1);
+grama.visible=altos;
+flores.visible=altos;
+caules.visible=altos;
+
+// os materiais precisam ser refeitos quando as sombras mudam
+scene.traverse(o=>{
+if(o.material) o.material.needsUpdate=true;
+});
+
+try{ localStorage.setItem("lenhadorGraficos",altos?"altos":"leves"); }catch(e){}
+
+if(avisarJogador) avisar(altos?"✨ Gráficos completos (G muda)":"⚡ Gráficos leves (G muda)");
+
+}
+
+// usa a escolha da última vez
+try{
+if(localStorage.getItem("lenhadorGraficos")==="leves") definirGraficos(false,false);
+}catch(e){}
+
+// nos primeiros segundos de jogo, mede se o computador está lento
+function medirDesempenho(){
+if(!iniciado||medindoDesde<0) return;
+// espera 1,5 segundo antes de medir (o começo sempre engasga um pouco)
+if(medindoDesde===0){
+medindoDesde=performance.now()+1500;
+quadrosMedidos=0;
+return;
+}
+if(performance.now()<medindoDesde) return;
+quadrosMedidos++;
+const passou=performance.now()-medindoDesde;
+if(passou>4000){
+const fps=quadrosMedidos/(passou/1000);
+medindoDesde=-1;
+if(fps<25&&graficosAltos) definirGraficos(false,true);
+}
+}
+
+/* =========================================================
+   LAÇO PRINCIPAL (roda 60 vezes por segundo)
+   ========================================================= */
 
 function loop(){
 
 quadro++;
 
-if(!fim){
-
-update();
+if(iniciado&&!fim){
+atualizarJogador();
 atualizarSuspeita();
-atualizarMissao();
-
-if(missaoCumprida&&dinheiro>=META_DINHEIRO) terminar("escapou");
-
+tempo+=0.0006;
+}else if(!iniciado){
+animarLenhador(false);
 }
 
+atualizarNPCs();
+atualizarFiscais();
 animarArvores();
+atualizarModeloCarro();
+atualizarParticulas();
 atualizarCeu();
 atualizarCamera();
+atualizarHUD();
 atualizarBarraVida();
 atualizarSirene();
+atualizarMinimapa();
+atualizarSom();
+medirDesempenho();
 
 renderer.render(scene,camera);
 
@@ -1018,9 +3322,8 @@ requestAnimationFrame(loop);
 
 }
 
-// começa com a câmera já no lugar certo
-camera.position.set(player.x,alturaFinal(player.x,player.z)+8.5,player.z+11);
-
+vestir(0);
+montarFerramenta();
 loop();
 
 </script>
